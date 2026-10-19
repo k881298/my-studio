@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>秀境紙藝｜社群工作台</title>
+  <style>
+    :root {
+      /* 所有顏色集中於此；品牌主色請修改 --brand。 */
+      --brand: #f0efc1;
+      --paper: #f5f2ec;
+      --surface: #fffdf8;
+      --ink: #24211f;
+      --muted: #777065;
+      --line: #ddd4c5;
+      --accent: #8a7148;
+      --soft: #eee9df;
+      --shadow: #303e3614;
+      --clear: transparent;
+      --social-ink: #111111;
+      --hint: #818181;
+      --overlay: #18231c66;
+      --white: #ffffff;
+      --header: #f8f4eb;
+      --mount: #e9e3d8;
+      --image-shade: #24211f24;
+      --error: #b13d32;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; font-size: 14px; line-height: 1.7; }
+    button, textarea { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+    .topbar { background: var(--brand); padding: 22px 36px; display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid var(--line); }
+    .brand-title { margin: 0; font-family: "Noto Serif TC", "PMingLiU", serif; font-size: 25px; font-weight: 600; letter-spacing: .08em; }
+    .topbar p { margin: 2px 0 0; color: var(--muted); font-size: 12px; letter-spacing: .12em; }
+    .edition { border: 1px solid var(--accent); padding: 4px 12px; border-radius: 30px; font-size: 12px; white-space: nowrap; }
+    .intro { padding: 24px 36px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .intro p { margin: 0; color: var(--muted); }
+    .intro .quote { font-family: "PMingLiU", serif; color: var(--accent); font-size: 17px; }
+    .workspace { display: grid; grid-template-columns: minmax(290px, 1.05fr) minmax(330px, 1.4fr) minmax(280px, .95fr); margin: 0 24px 28px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+    .panel { padding: 26px; min-width: 0; }
+    .panel + .panel { border-left: 1px solid var(--line); }
+    .panel-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
+    h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: .05em; }
+    .panel-caption { margin: 0 0 24px; font-size: 12px; color: var(--muted); }
+    .small-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .field { margin-bottom: 19px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 7px; font-size: 13px; font-weight: 600; }
+    .requirement { color: var(--accent); font-size: 11px; font-weight: 400; white-space: nowrap; }
+    .requirement.optional { color: var(--muted); }
+    textarea { display: block; width: 100%; padding: 11px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); line-height: 1.7; resize: vertical; }
+    textarea::placeholder { color: var(--muted); opacity: 1; }
+    textarea:focus { border-color: var(--accent); }
+    .field textarea { min-height: 84px; font-size: 12px; }
+    .editor-panel { display: flex; flex-direction: column; }
+    .platform-tabs { display: flex; gap: 4px; padding: 5px; background: var(--soft); border-radius: 8px; margin-bottom: 25px; }
+    .platform-tab { flex: 1; padding: 10px 5px; background: var(--clear); border: 1px solid var(--clear); border-radius: 5px; font-size: 13px; color: var(--muted); }
+    .platform-tab[aria-selected="true"] { background: var(--surface); border-color: var(--line); color: var(--ink); box-shadow: 0 2px 4px var(--shadow); font-weight: 600; }
+    .platform-tab:hover { color: var(--ink); }
+    .editor-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+    .editor-area { flex: 1; min-height: 560px; background: var(--surface); padding: 20px; font-size: 15px; line-height: 2; }
+    .character-count { margin: 8px 0 0; text-align: right; font-size: 12px; color: var(--muted); }
+    .character-count.is-over { color: var(--error); font-weight: 600; }
+    .editor-footer { display: flex; align-items: center; gap: 8px; margin: 13px 0 0; color: var(--muted); font-size: 12px; }
+    .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+    .preview-panel { background: var(--soft); }
+    .phone { position: relative; width: 100%; max-width: 284px; margin: 34px auto 0; padding: 10px; border: 2px solid var(--ink); border-radius: 38px; background: var(--paper); box-shadow: 6px 10px 0 var(--line), 0 16px 30px var(--shadow); }
+    .phone-screen { min-height: 530px; overflow: hidden; border: 1px solid var(--line); border-radius: 27px; background: var(--surface); }
+    .phone-top { height: 31px; display: flex; justify-content: center; }
+    .notch { width: 88px; height: 17px; border-radius: 0 0 12px 12px; background: var(--ink); }
+    .profile { display: flex; align-items: center; gap: 9px; padding: 14px 13px; }
+    .avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: var(--brand); color: var(--accent); font-family: "PMingLiU", serif; font-size: 19px; }
+    .profile-name { font-size: 12px; font-weight: 600; }
+    .profile-note { font-size: 10px; color: var(--muted); }
+    .more { margin-left: auto; letter-spacing: 2px; color: var(--muted); }
+    .art-placeholder { aspect-ratio: 1; display: grid; place-content: center; text-align: center; background: var(--brand); position: relative; overflow: hidden; }
+    .paper-art { position: relative; width: 130px; height: 125px; margin: 0 auto 8px; }
+    .paper-art span { position: absolute; display: block; width: 74px; height: 92px; border: 1px solid var(--line); border-radius: 90% 6% 80% 10%; background: var(--paper); box-shadow: 5px 7px 9px var(--shadow); transform: rotate(-28deg); left: 16px; top: 20px; }
+    .paper-art span:nth-child(2) { transform: rotate(31deg); left: 53px; top: 10px; background: var(--surface); }
+    .paper-art span:nth-child(3) { transform: rotate(5deg); left: 38px; top: 39px; width: 51px; height: 69px; }
+    .art-placeholder p { margin: 0; color: var(--accent); font-size: 11px; letter-spacing: .15em; }
+    .preview-copy { padding: 18px 15px; }
+    .preview-copy p { margin: 0 0 12px; font-size: 12px; }
+    .preview-copy .empty-note { color: var(--muted); font-size: 11px; }
+    .placeholder-line { height: 5px; border-radius: 3px; background: var(--soft); margin-top: 10px; }
+    .placeholder-line.short { width: 65%; }
+    .home-indicator { height: 4px; width: 80px; background: var(--ink); border-radius: 5px; margin: 23px auto 9px; }
+    .preview-note { text-align: center; color: var(--muted); font-size: 12px; margin: 24px 0 0; }
+    .phone-screen { height: 550px; display: flex; flex-direction: column; color: var(--social-ink); }
+    .phone-top { flex-shrink: 0; }
+    .social-feed { flex: 1; min-height: 0; overflow-y: auto; overflow-wrap: anywhere; }
+    .phone .home-indicator { flex-shrink: 0; margin-top: 12px; }
+    .phone .avatar { flex-shrink: 0; }
+    .post-text { margin: 0; padding: 0 13px 16px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+    .is-placeholder { color: var(--hint); }
+    .social-image { aspect-ratio: 1; display: grid; place-items: center; background: var(--brand); padding: 20px; text-align: center; }
+    .image-title { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 23px; line-height: 1.5; font-weight: 600; font-family: "PMingLiU", serif; }
+    .facebook-image { aspect-ratio: 1.55; background: var(--soft); border-block: 1px solid var(--line); font-size: 12px; }
+    .social-actions { display: flex; gap: 18px; padding: 10px 13px; font-size: 23px; line-height: 1.4; }
+    .facebook-actions { justify-content: space-around; gap: 6px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+    .thread-row { display: flex; align-items: flex-start; gap: 9px; padding: 17px 13px; }
+    .thread-body { flex: 1; min-width: 0; }
+    .thread-heading { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+    .thread-body .post-text { padding: 0; }
+    .header-actions { display: flex; align-items: center; gap: 14px; }
+    .header-actions { flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .topbar { flex-wrap: wrap; }
+    .draft-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 23px; }
+    .draft-actions .assemble-button { margin: 0; }
+    .save-status { color: var(--muted); font-size: 12px; margin: 10px 0 0; min-height: 1.7em; }
+    .saved-post { border-top: 1px solid var(--line); padding: 17px 0; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+    .saved-post-info { min-width: 0; }
+    .saved-post-name { margin: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .saved-post-time { margin: 5px 0 0; font-size: 12px; color: var(--muted); }
+    .saved-post-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .ai-checks { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 18px; }
+    .ai-checks h3 { font-size: 15px; margin: 0 0 10px; }
+    .check-item { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+    .check-item p { margin: 3px 0; color: var(--muted); }
+    button:disabled { opacity: .6; cursor: wait; }
+    @media (max-width: 760px) { .topbar { flex-wrap: wrap; } .header-actions { margin-left: auto; } }
+    @media (max-width: 480px) { .header-actions { width: 100%; } .header-actions .action-button { flex: 1; font-size: 12px; padding: 8px; } .saved-post { align-items: flex-start; flex-direction: column; } .draft-actions { grid-template-columns: 1fr; } }
+    .action-button { border: 1px solid var(--accent); border-radius: 6px; padding: 9px 15px; background: var(--surface); color: var(--ink); white-space: nowrap; }
+    .action-button:hover { background: var(--soft); }
+    .primary-button { background: var(--brand); }
+    .settings-button { background: var(--clear); }
+    .assemble-button { width: 100%; margin-top: 23px; }
+    .modal { width: min(720px, calc(100% - 32px)); max-height: 90dvh; padding: 26px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 15px 50px var(--shadow); }
+    .modal::backdrop { background: var(--overlay); }
+    .modal-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 17px; }
+    .modal label { display: block; margin: 16px 0 7px; font-weight: 600; }
+    .modal textarea { min-height: 190px; }
+    .modal .prompt-output { height: 50dvh; min-height: 240px; }
+    .modal-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .modal-note { color: var(--muted); font-size: 12px; margin: 0; }
+    .modal-status { min-height: 1.7em; margin: 12px 0 0; font-size: 13px; color: var(--accent); }
+    /* 秀境紙藝：暖紙、古金與含框原作。 */
+    .topbar { background: var(--surface); border-top: 4px solid var(--brand); padding: 14px 30px; }
+    .brand-lockup { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .brand-mark { width: 68px; height: 58px; object-fit: contain; flex-shrink: 0; }
+    .brand-title { font-size: 23px; letter-spacing: .06em; line-height: 1.5; }
+    .topbar p { color: var(--accent); }
+    .edition { border-color: var(--line); color: var(--accent); }
+    h2 { font-family: "Noto Serif TC", "PMingLiU", serif; font-weight: 600; }
+    .workspace { border-radius: 12px; box-shadow: 0 8px 30px var(--shadow); }
+    .preview-panel { background: var(--header); }
+    .platform-tabs, .platform-tab, textarea, .action-button { border-radius: 7px; }
+    .platform-tab[aria-selected="true"] { border-bottom: 2px solid var(--accent); }
+    .intro { padding: 18px 30px; }
+    .intro .quote { font: inherit; font-size: 13px; color: var(--muted); }
+    .collection-link { color: var(--accent); font-size: 12px; text-decoration: none; white-space: nowrap; }
+    .collection-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .work-picker { margin: 0 0 25px; padding-bottom: 23px; border-bottom: 1px solid var(--line); }
+    .work-picker label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 8px; }
+    .work-picker select { width: 100%; padding: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; border-radius: 4px; }
+    .selected-work { display: block; margin: 14px 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+    .work-mount { padding: 18px 24px; background: var(--mount); display: flex; justify-content: center; }
+    .selected-work img { display: block; width: 100%; height: 190px; object-fit: contain; filter: drop-shadow(0 5px 5px var(--image-shade)); }
+    .work-caption { padding: 13px 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .work-caption strong { font-family: "PMingLiU", serif; font-size: 19px; font-weight: 500; letter-spacing: .08em; }
+    .selected-work p { margin: 3px 0; font-size: 11px; color: var(--muted); }
+    .selected-work a { color: var(--accent); font-size: 12px; text-underline-offset: 3px; }
+    .work-picker .action-button { width: 100%; font-size: 12px; }
+    .work-status { font-size: 12px; color: var(--accent); margin: 9px 0 0; }
+    .social-feed { background: var(--white); }
+    .social-image { position: relative; overflow: hidden; padding: 0; background: var(--paper); grid-template-rows: minmax(0, 1fr) auto; }
+    .social-image img { grid-row: 1; min-height: 0; width: 100%; height: 100%; object-fit: contain; padding: 12px; }
+    .social-image .image-title { grid-row: 2; width: 100%; padding: 10px 12px; background: var(--header); font-size: 16px; line-height: 1.5; max-height: 92px; overflow-y: auto; }
+    .facebook-image { grid-template-rows: minmax(0, 1fr); }
+    .facebook-image img { max-height: 220px; }
+    .phone .avatar { background: var(--header); overflow: hidden; }
+    .avatar img { width: 100%; height: 100%; object-fit: contain; }
+    .footer { padding: 0 36px 24px; color: var(--muted); font-size: 12px; letter-spacing: .08em; }
+    @media (min-width: 1500px) { .workspace { max-width: 1460px; margin-left: auto; margin-right: auto; } }
+    @media (max-width: 1050px) { .workspace { grid-template-columns: minmax(270px, 1fr) minmax(300px, 1.2fr); } .preview-panel { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--line); } .phone { margin-top: 20px; } }
+    @media (max-width: 760px) { .edition { display: none; } .workspace { display: block; margin: 0 18px 22px; } .panel { padding: 24px; } .panel + .panel { border-left: 0; border-top: 1px solid var(--line); } .selected-work { display: grid; grid-template-columns: minmax(140px, .85fr) 1fr; } .work-mount { padding: 16px; } .selected-work img { height: 170px; } .work-caption { display: block; align-self: center; padding: 20px; } .work-caption p { margin: 8px 0; } .editor-area { min-height: 400px; } .footer { padding: 0 24px 22px; } }
+    @media (max-width: 480px) { .topbar { padding: 12px 16px; gap: 10px; } .brand-lockup { gap: 8px; } .brand-mark { width: 44px; height: 48px; } .brand-title { font-size: 17px; letter-spacing: 0; } .topbar p { font-size: 10px; letter-spacing: .04em; } .settings-button { padding: 8px 10px; font-size: 12px; } .intro { padding: 15px 18px; gap: 10px; align-items: flex-start; } .intro .quote { font-size: 12px; } .collection-link { font-size: 11px; } .workspace { margin-inline: 10px; } .panel { padding: 22px 18px; } .selected-work { grid-template-columns: minmax(100px, .9fr) 1fr; } .selected-work img { height: 145px; } .work-caption { padding: 14px; } .work-caption strong { font-size: 18px; } .small-label { font-size: 10px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-lockup"><img class="brand-mark" src="https://xiujing-paper-art.k881298.chatgpt.site/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
+    <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
+  </header>
+  <div class="intro"><p class="quote">從一幅紙景，開始今天的分享。</p><a class="collection-link" href="https://xiujing-paper-art.k881298.chatgpt.site/works" target="_blank" rel="noopener">作品典藏 ↗</a></div>
+  <main class="workspace">
+    <section class="panel" aria-labelledby="material-title">
+      <div class="panel-header"><h2 id="material-title">素材卡</h2><span class="small-label">每件作品，一張卡</span></div>
+      <p class="panel-caption">先留下觀察與心情，讓故事有個起點。</p>
+      <div class="work-picker">
+        <label for="work-select">從我的作品開始</label>
+        <select id="work-select"></select>
+        <div class="selected-work"><div class="work-mount"><img id="work-thumbnail" alt=""></div><div class="work-caption"><div><strong id="work-name"></strong><p>立體紙雕原作</p></div><a id="work-source" target="_blank" rel="noopener">細看作品 ↗</a></div></div>
+        <button type="button" class="action-button primary-button" id="use-work">✨ 自動生成素材與貼文</button>
+        <p class="save-status">直接使用設定中的明確規則組稿與檢查；語氣、故事等判斷會標示待人工確認。</p>
+        <p class="work-status" id="work-status" role="status"></p>
+      </div>
+      <form id="material-form" aria-label="作品素材卡"></form>
+      <div class="draft-actions"><button type="button" class="action-button primary-button assemble-button" id="assemble-prompt">🧩 組好指令</button><button type="button" class="action-button" id="save-post">💾 存檔</button></div>
+      <p class="save-status" id="save-status" role="status"></p>
+    </section>
+    <section class="panel editor-panel" aria-labelledby="editor-title">
+      <div class="panel-header"><h2 id="editor-title">貼文編寫</h2><span class="small-label">留一點時間，慢慢說</span></div>
+      <p class="panel-caption">選擇平台，在這裡整理想分享的內容。</p>
+      <div class="platform-tabs" id="platform-tabs" role="tablist" aria-label="貼文平台"></div>
+      <div id="editor-container" role="tabpanel" style="display:flex; flex-direction:column; flex:1;">
+        <label class="editor-label" for="post-content">貼文內容</label>
+        <textarea id="post-content" class="editor-area" placeholder="遠看，是一幅安靜的風景。&#10;靠近，才發現每一道起伏都是紙。&#10;&#10;從一個你想分享的細節開始……"></textarea>
+        <p class="character-count" id="post-character-count" role="status" aria-live="polite" aria-atomic="true" title="標點、空白與換行都計入字數；複合表情符號計為一字。">目前 0 字｜未設定上限</p>
+      </div>
+      <p class="editor-footer"><span class="dot" aria-hidden="true"></span>各平台貼文分開保留，編寫內容會自動暫存於此瀏覽器。</p>
+      <section class="ai-checks" aria-labelledby="checks-title"><h3 id="checks-title">這篇的檢查結果</h3><button type="button" class="action-button" id="check-posts">檢查並修正目前貼文</button><div id="check-results"><p class="save-status">尚未執行檢查。</p></div></section>
+    </section>
+    <section class="panel preview-panel" aria-labelledby="preview-title">
+      <div class="panel-header"><h2 id="preview-title">手機預覽</h2><span class="small-label">示意畫面</span></div>
+      <p class="panel-caption">想像作品在手機上，被靠近觀看的樣子。</p>
+      <div class="phone" aria-label="手機貼文預覽">
+        <div class="phone-screen">
+          <div class="phone-top" aria-hidden="true"><div class="notch"></div></div>
+          <div class="social-feed" id="social-preview"></div>
+          <div class="home-indicator" aria-hidden="true"></div>
+        </div>
+      </div>
+      <p class="preview-note">輸入貼文，即時預覽。</p>
+    </section>
+  </main>
+  <footer class="footer">秀境紙藝｜在紙材與光影之間，收藏生活的風景。</footer>
+  <dialog class="modal" id="settings-dialog" aria-labelledby="settings-title">
+    <div class="modal-heading"><h2 id="settings-title">工作台設定</h2><button type="button" class="action-button" data-close="settings-dialog">關閉</button></div>
+    <p class="modal-note">貼上品牌規格與檢查清單，儲存後會保留在目前瀏覽器。</p>
+    <label for="brand-spec">品牌規格</label>
+    <textarea id="brand-spec" placeholder="在這裡貼上品牌規格全文……"></textarea>
+    <label for="checklist">檢查清單</label>
+    <textarea id="checklist" placeholder="在這裡貼上檢查清單；沒有可留空……"></textarea>
+    <div class="modal-actions"><button type="button" class="action-button primary-button" id="save-settings">儲存</button></div>
+    <p class="modal-status" id="settings-status" role="status"></p>
+  </dialog>
+  <dialog class="modal" id="prompt-dialog" aria-labelledby="prompt-title">
+    <div class="modal-heading"><h2 id="prompt-title">組好的指令</h2><button type="button" class="action-button" data-close="prompt-dialog">關閉</button></div>
+    <label for="prompt-output">完整指令</label>
+    <textarea class="prompt-output" id="prompt-output" readonly></textarea>
+    <div class="modal-actions"><span class="modal-note">複製後，貼到對話中即可使用。</span><button type="button" class="action-button primary-button" id="copy-prompt">複製</button></div>
+    <p class="modal-status" id="copy-status" role="status"></p>
+  </dialog>
+  <dialog class="modal" id="posts-dialog" aria-labelledby="posts-title">
+    <div class="modal-heading"><h2 id="posts-title">我的貼文</h2><button type="button" class="action-button" data-close="posts-dialog">關閉</button></div>
+    <p class="modal-note">貼文保存在目前瀏覽器，存檔時間以臺灣時間顯示。</p>
+    <div id="saved-posts-list"></div>
+    <p class="modal-status" id="posts-status" role="status"></p>
+  </dialog>
+  <script>
+    // ===== 可自行修改的品牌、平台與素材卡欄位 =====
+    const BRAND_NAME = '秀境紙藝';
+    const ACCOUNT_NAME = 'xiujing0905'; // 來自品牌網站的 Instagram／Threads 帳號。
+    const PLATFORMS = ['Instagram', 'Facebook', 'Threads'];
+    // 與品牌規格.md 的「平台字數上限」一致（查詢日期：2026/10/15）。
+    const PLATFORM_CHARACTER_LIMITS = { Instagram: 2200, Facebook: 63206, Threads: 500 };
+    const BRAND_WEBSITE = 'https://xiujing-paper-art.k881298.chatgpt.site';
+    // 作品名稱、圖片路徑與畫面描述取自網站「作品典藏」，讀取日期：2026/10/15。
+    // 此處保留作品資料快照；收藏狀態、價格、尺寸與紙材請另行確認。
+    const WORKS = [
+      ['秋窗仕女', 'autumn-window-lady', '/art/paper-collection/autumn-window-lady/studio-front.webp', '紫衣仕女、秋葉與深色木框'],
+      ['荷韻雙鯉', 'lotus-and-koi', '/art/paper-collection/lotus-and-koi/studio-front.webp', '殘荷、雙鯉與淺綠色框體'],
+      ['竹影藍鵲', 'blue-magpie-in-bamboo', '/art/paper-collection/blue-magpie-in-bamboo/studio-front.webp', '藍鵲、竹葉與金色框體'],
+      ['夏夜相逢', 'summer-night-encounter', '/optimized/art/paper-collection/summer-night-encounter/studio-front-new.webp', '綠色畫框與粉衣女孩'],
+      ['白羽清波', 'white-waterbird', '/art/paper-collection/white-waterbird/studio-front.webp', '白色水鳥立於水草之間'],
+      ['花間題墨', 'ink-blossom-lady', '/art/paper-collection/ink-blossom-lady/studio-front.webp', '黃衣仕女倚案執筆'],
+      ['秋庭展卷', 'autumn-reading-lady', '/art/paper-collection/autumn-reading-lady/studio-front.webp', '仕女在紅楓與奇石間展卷閱讀'],
+      ['簾影凝香', 'draped-lady', '/optimized/art/paper-collection/draped-lady/studio-front-v2.webp', '立體紙雕完整含框作品'],
+      ['荷鋤歸家', 'farmer-homecoming', '/art/paper-collection/farmer-homecoming/studio-front.webp', '老農、草屋與青綠色框體'],
+      ['花鏡仕女', 'mirror-lady', '/art/paper-collection/mirror-lady/studio-front.webp', '紅衣仕女、花枝與深紅色框體'],
+      ['竹影琵音', 'bamboo-pipa-melody', '/optimized/art/paper-collection/bamboo-pipa-melody/studio-front-sep13.webp', '立體紙雕完整含框作品'],
+      ['春水相依', 'spring-water-ducks', '/optimized/art/paper-collection/spring-water-ducks/studio-front-new.webp', '木框與兩隻小鴨'],
+      ['午後凝香', 'afternoon-coffee', '/optimized/art/paper-collection/afternoon-coffee/studio-front-v2.webp', '立體紙雕完整含框作品'],
+      ['月白玫瑰', 'moonlit-rose', '/optimized/art/paper-collection/moonlit-rose/studio-front-sep13.webp', '立體紙雕完整含框作品'],
+      ['星夜入夢', 'starlit-reverie', '/optimized/art/paper-collection/starlit-reverie/studio-front-v2.webp', '立體紙雕完整含框作品'],
+      ['晨光汲水', 'morning-at-the-well', '/optimized/art/paper-collection/morning-at-the-well/studio-front-sep13.webp', '立體紙雕完整含框作品'],
+      ['花下絮語', 'under-the-blossoms', '/optimized/art/paper-collection/under-the-blossoms/studio-front-v2.webp', '立體紙雕完整含框作品'],
+      ['金羽棲秋', 'golden-feather-autumn', '/optimized/art/paper-collection/golden-feather-autumn/studio-front-new.webp', '金黃鳥兒與畫框'],
+      ['荷池錦游', 'koi-garden', '/optimized/art/paper-collection/koi-garden/studio-front-sep13.webp', '立體紙雕完整含框作品'],
+      ['和風童趣', 'kimono-play', '/art/paper-collection/kimono-play/studio-front.webp', '和服女孩、小貓與青綠色框體'],
+      ['玉帛清姿', 'jade-silk-grace', '/art/paper-collection/jade-silk-grace/studio-front.webp', '淡青衣帛仕女、暖色簾幕與墨綠色框體'],
+      ['梅影雙鶴', 'cranes-and-plum', '/art/paper-collection/cranes-and-plum/studio-front.webp', '白梅、雙鶴、紅色背景與木框'],
+      ['夕照鹿行', 'giraffes-at-sunset', '/art/paper-collection/giraffes-at-sunset/studio-front.webp', '三隻長頸鹿、夕陽、草地與金色木框'],
+      ['花簪舞影', 'floral-dance', '/art/paper-collection/floral-dance/studio-front.webp', '花簪女子、紫紅裙褶與木色外框'],
+      ['嫦娥奔月・木色框', 'chang-e-wood-frame', '/art/paper-collection/chang-e-wood-frame/studio-front.webp', '橙月、藍色纖維背景與飄帶'],
+      ['嫦娥奔月・青綠框', 'chang-e-green-frame', '/art/paper-collection/chang-e-green-frame/studio-front.webp', '嫦娥、金橙圓月與深綠背景']
+    ].map(([name, slug, image, description]) => ({ name, slug, image: BRAND_WEBSITE + image, description, url: `${BRAND_WEBSITE}/works/${slug}` }));
+    // 以下逐幅讀取自作品詳細頁。欄位：分類、簡介、故事、含框尺寸、工藝特色、裝裱說明。
+    const ARTWORK_DETAILS = {
+      'autumn-window-lady': ['人物', '秋葉、山石與倚坐仕女交疊出一方幽靜窗景。', '圓窗收住秋色，也讓人物走出平面的邊界。柔紫衣褶以層層紙張塑出垂墜感，與後方剛直的山石、欄杆形成靜與動的對照。', '59 × 76.5 × 7.5', '人物表情塑形、衣褶堆疊、圓窗景深、木框裝裱', '深色木框搭配古典角花與紋樣裱褙，框內保留充足景深，讓人物衣褶、秋葉與山石的前後層次清楚浮現。'],
+      'lotus-and-koi': ['自然', '殘荷舒展於水面，雙鯉在留白之間自在相迎。', '作品以一片舒展的荷葉作為視覺中心，細緻起伏讓葉面如同被風與時光輕觸。兩尾錦鯉游入留白，使沉靜畫面多了一份生機。', '34 × 44 × 7', '荷葉葉脈塑形、魚鱗細作、層次留白、淺色框裝裱', '淺綠色框體與同色裱褙襯托鮮明綠底，深色內框及細金線收束畫面；框體保留荷葉、花朵與雙鯉所需的立體景深。'],
+      'blue-magpie-in-bamboo': ['花鳥', '藍鵲棲於竹枝，鮮明羽色在柔和紙景中格外靈動。', '長尾藍鵲停駐於竹林之間，羽片由深至淺層疊排列。竹葉與枝幹以斜向節奏展開，留下彷彿下一刻就會振翅的張力。', '40 × 67 × 6', '羽片分層、長尾比例塑形、竹葉折線、自然肌理背景', '金色框體與淺色裱褙環繞竹林畫面，深框結構為藍鵲長尾、枝幹與竹葉保留充足空間，使羽片與紙材陰影在光線下清楚浮現。'],
+      'summer-night-encounter': ['生活敘事', '粉衣女孩迎著微風與落花，俏皮神情收藏一刻輕盈童趣。', '女孩跪坐於草地，抬手迎接風中飄落的白色花瓣。粉色衣裳上的細小花紋、髮絲與手勢以多層紙材細緻塑形，讓安靜畫面帶著微風般的動感。', '39 × 49 × 8', '人物神情塑形、衣飾花紋細作、髮絲層次、飄花構圖、深框裝裱', '飽和綠色木框搭配米白與深綠裱褙，金色細線收束畫面；深框結構為人物、枝葉與飄花保留立體層次。'],
+      'white-waterbird': ['花鳥', '白羽水鳥立於蘆葦淺水間，紙羽與水色交織出安靜氣息。', '作品以潔白羽片逐層塑出水鳥的蓬鬆與重量，細長黑喙和水邊草叢拉開疏密節奏。微微擴散的水波，讓靜止的紙景彷彿仍有呼吸。', '55.5 × 42.5 × 8', '羽片分層、紙材塑形、蘆葦細作、水景層次、金色框裝裱', '暖金色外框與青綠色深框呼應水色背景，框體保留紙羽與水草所需的立體空間，背面附掛繩便於展示。'],
+      'ink-blossom-lady': ['人物', '仕女倚案執筆，花枝環繞，將安靜的書寫片刻收進紙景。', '低垂的眼神、執筆的手勢與身後花枝共同形成柔和動線。衣袖、裙襬與石案由多層紙材塑出厚薄差異，使靜謐畫面保有細緻節奏。', '48.5 × 61 × 7', '人物五官塑形、衣褶層疊、紙花細作、石案肌理、框裝', '深紅木色外框與暖金色內框包覆米色裱褙，層層內框收束畫面，也為人物、石案與花枝留出立體景深。'],
+      'autumn-reading-lady': ['人物', '秋楓與奇石之間，仕女展卷閱讀，神情清雅從容。', '圓形窗景收束紅褐秋色，人物手中的書卷成為視線焦點。藍紫衣袖與暖紅背景相互映襯，紙張折塑出的衣領與指尖更顯含蓄。', '64 × 64 × 7', '書卷細節、手勢塑形、圓窗構圖、楓葉層次、木框裝裱', '深色木框搭配古典角花與米色圓窗裱褙，框內保留楓葉、奇石與人物所需的立體景深，背面附掛繩。'],
+      'draped-lady': ['人物', '女子靜坐於金綠流光之間，素雅衣色映出一段安靜時光。', '金黃與青綠交融的背景，襯出女子微微側首的沉靜神情。衣襟、袖口與手勢由多層紙材塑形，細緻輪廓在光線下留下柔和陰影，也讓平面肖像有了可近觀的深度。', '43 × 58.5 × 7', '人物五官塑形、紙材衣褶、手勢細作、層次裱褙、深框裝裱', '外框、內框與裱褙彼此相襯，保留立體紙雕需要的深度，也讓作品在不同角度與光線下呈現細微陰影。'],
+      'farmer-homecoming': ['生活敘事', '老農攜斗笠與農具歸來，屋舍與樹影寫下樸實日常。', '草屋、樹冠與人物形成由左至右的歸家視線。斗笠編紋、葉片剪影與鬍鬚細節交疊，將熟悉的鄉間生活留存在立體紙景中。', '44 × 52 × 8', '人物姿態、斗笠編紋、茅草屋細節、樹葉層疊、框裝', '青綠色框體搭配米白與深色裱褙，細金線收束鄉野畫面；深框結構為人物、草屋與前景葉片保留立體景深。'],
+      'mirror-lady': ['人物', '紅衣仕女對鏡理妝，花枝、髮飾與圓窗相映成趣。', '鏡面與人物側身形成親密的觀看關係，紅衣在暖褐背景中格外鮮明。細小紙花、髮絲與手部姿態，讓日常梳妝成為典雅片刻。', '57 × 57 × 7', '人物側姿、髮飾紙花、鏡面造型、圓窗構圖、金色框裝裱', '深紅色框體與金色內飾環繞米白裱褙，深色內框收住暖橘圓窗，為花枝、髮飾與人物保留清楚的立體距離。'],
+      'bamboo-pipa-melody': ['人物', '仕女抱琵琶靜坐竹影間，柔和衣褶與琴弦交織出清雅餘韻。', '斜展的竹葉環繞著懷抱琵琶的仕女，人物低眉凝神，像是正聆聽弦音落入幽靜庭園。直立的琵琶串起畫面上下，紙張塑出的衣袖、指尖與樂器紋理，讓沉靜姿態仍保有細膩節奏。', '47 × 57 × 7', '人物神情塑形、手勢與琴弦細作、竹葉層疊、衣褶堆塑、木框裝裱', '深綠外框、暖木內線與淺色裱褙襯托竹影，框體深度容納仕女、琵琶與竹葉的立體層次，光線落下時留下柔和紙影。'],
+      'spring-water-ducks': ['動物', '兩隻小鴨沿著水岸相伴而行，明亮身影寫下春日暖意。', '白羽、淡黃羽色與金黃嘴喙在水藍背景中形成明亮節奏，水草與香蒲從兩側探入，兩隻小鴨一前一後，像正沿著岸邊自在談笑。', '42 × 34 × 8', '羽毛分層、動物神情塑形、水草細作、清淺色景深、木框裝裱', '暖色木框與米白裱褙簡潔收束水藍畫面，內框保留充足深度，讓羽片、水草與香蒲在光線下顯出清楚前後層次。'],
+      'afternoon-coffee': ['人物', '女子在午後靜坐，雙手輕疊，沉靜姿態映著背景柔和流光。', '女子微微垂首，雙手安放於膝前，像是在午後光影中短暫停留。深色景石與暖褐衣色相互映襯，紙張的厚薄與折線，塑出安靜而內斂的人物氣質。', '44 × 57 × 7', '坐姿人物塑形、手部細節、衣料層次、深色景深、木框裝裱', '外框、內框與裱褙彼此相襯，保留立體紙雕需要的深度，也讓作品在不同角度與光線下呈現細微陰影。'],
+      'moonlit-rose': ['花鳥', '白玫瑰自深色紙景中緩緩綻放，花瓣層次如月色落下。', '作品收斂色彩，以花瓣的捲曲、陰影與前後距離展現紙雕的細膩。深色背景讓每一道手工塑形都更清楚，也保留花朵安靜盛放的餘韻。', '34 × 49 × 7', '玫瑰花瓣塑形、層次堆疊、葉片細作、深色景深、框裝', '溫潤木框與淺色裱褙環繞深藍底景，細金線收束畫面，襯出玫瑰花瓣、綠葉與纖維紋理的立體層次。'],
+      'starlit-reverie': ['人物', '女子在幽暗星夜中安然停駐，柔和身影與微光相互依偎。', '深色背景將人物收進靜謐夜色，衣襬與髮絲的層次在光線下若隱若現。作品留下大片安靜空間，像一段未說完的夢。', '46.5 × 56 × 6.5', '人物神情塑形、衣褶層疊、深色背景、光影層次、框裝', '外框、內框與裱褙彼此相襯，保留立體紙雕需要的深度，也讓作品在不同角度與光線下呈現細微陰影。'],
+      'morning-at-the-well': ['生活敘事', '晨光落在磚牆與水桶之間，女子的日常身影沉著而溫暖。', '水桶、磚牆與窗景構成樸實生活場域，人物微微俯身的動作讓畫面保持流動。紙張塑出的衣裙與器物，留住日常勞動中的從容。', '41.5 × 45.5 × 8', '人物動態、器物塑形、磚牆細節、生活場景景深、框裝', '青綠木框與淺色裱褙襯托庭院景色，內框層次保留人物、水桶與磚牆之間的深度，讓紙材陰影自然浮現。'],
+      'under-the-blossoms': ['生活敘事', '花樹下的一大一小相對而立，日常叮嚀化作溫柔紙景。', '紫衣女子微微轉身，孩子抬頭相望，兩人的距離留下親密對話。枝葉與花朵從畫面上方垂落，使人物像被一片柔和樹蔭輕輕包圍。', '48 × 66 × 8', '雙人互動、衣褶塑形、花枝層疊、人物比例、木框裝裱', '溫潤木質外框、深色雕花內框與金線裱褙層層收束，為人物與花枝保留充足景深，也讓細緻紙影在光線下自然浮現。'],
+      'golden-feather-autumn': ['花鳥', '金黃鳥兒停駐枝間，深紫葉影讓明亮羽色更顯生動。', '作品以鮮明黃羽作為視線中心，枝葉由深至淺向外舒展。羽片、鳥喙與腳爪的細緻塑形，保留下一刻即將振翅的張力。', '54 × 48 × 9', '鳥羽分層、枝葉塑形、色彩對比、自然景深、框裝', '暖棕外框包覆帶有細緻金屬光澤的寬邊框，深框結構為枝葉、鳥羽與石塊保留充足空間，呈現鮮明的立體景深。'],
+      'koi-garden': ['自然', '群鯉穿梭荷葉之間，橘白身影在水色中形成悠然流動。', '大小錦鯉由不同方向游入畫面，荷葉與花朵在前景交疊，展開寬闊而有節奏的水中風景。群體配置使靜止紙景仍保有生生不息的流動。', '92 × 69 × 7', '群魚配置、魚鱗細作、荷葉層疊、水景構圖、大幅框裝', '金屬色澤的外框、繩紋內飾與灰褐裱褙環繞荷池，層層框線襯出錦鯉與荷葉的浮雕深度。'],
+      'kimono-play': ['生活敘事', '和服女孩俯身逗貓，鮮明衣紋與青綠草坡收藏一刻純真嬉遊。', '女孩身著蝶紋和服，在草坡上與仰首的小貓相互呼應。飛起的羽毽牽引視線，人物姿態、衣袖與小貓動作共同形成輕快節奏。', '56 × 51 × 6.5', '人物神情塑形、和服衣紋層疊、蝴蝶圖樣、小貓姿態、草坡景深', '青綠色外框與暖木色內框搭配米白裱褙，深藍內框收束明亮草坡；框體保留女孩、小貓與羽毽所需的立體景深。'],
+      'jade-silk-grace': ['人物', '淡青衣褶與暖色簾幕相映，仕女於靜默光影間流露溫潤清姿。', '仕女輕攏淡青衣帛，沉靜神情與層層垂落的衣褶彼此呼應。後方橙黃簾幕以深淺暖色展開，映襯人物如玉般清雅的氣質，也讓柔和紙材在光影之間顯出細膩起伏。', '42 × 60 × 7', '人物神情塑形、衣褶立體層疊、簾幕起伏、紙材肌理、深框裝裱', '墨綠色外框與暖木色內框搭配米白裱褙，深色內框及金色細線收束畫面；深框為人物衣褶與垂落簾幕保留充足的立體景深。'],
+      'cranes-and-plum': ['花鳥', '白梅枝影下，雙鶴相依，層疊白羽映著暖紅紙景。', '細小白梅沿著枝幹展開，兩隻鶴相依立於樹下。紅色背景襯出白羽與黑色尾羽，近看能看見羽片、花瓣與枝幹之間的前後距離。', '41.5 × 54 × 7.5', '雙鶴羽片層疊、梅花花瓣塑形、枝幹肌理、深框裝裱', '木色外框搭配米白裱褙與細金線，深框留出白梅枝幹與雙鶴羽片的前後空間。'],
+      'giraffes-at-sunset': ['動物', '夕陽下，三隻長頸鹿緩步同行，斑紋與草葉在紙景中浮現。', '橙色夕陽映著暖色天空，三隻長頸鹿沿著草地前行。深棕斑紋一片片落在金黃色身軀上，近看能看見鬃毛、長腿與草葉各自留下的層次。', '66 × 46 × 8.5', '長頸鹿立體塑形、斑紋紙片層疊、鬃毛與草葉細節、深框裝裱', '金色木框搭配米白裱褙與深棕內框，細線收束暖色紙景；近看長頸鹿身形與斑紋之間的起伏。'],
+      'floral-dance': ['人物', '花簪映著低垂眼神，紫紅裙褶隨著抬手與步伐展開。', '三朵花簪點亮黑色髮髻，女子輕抬手掌，裙褶向兩側展開。淡紫、紫紅與深藍紙材交錯，近看能看見眼神、耳飾、手勢與每一道裙褶的起伏。', '49 × 66 × 7', '人物神情塑形、花簪花瓣層疊、手勢與耳飾細節、裙褶立體塑形、深框裝裱', '木色外框搭配金色內框、米白裱褙與酒紅內襯，映襯紫紅裙褶；深框保留人物神情與衣褶的起伏。'],
+      'chang-e-wood-frame': ['人物', '橙月映著藍色纖維紙景，嫦娥抬手，淡紫飄帶環繞衣裙。', '嫦娥在橙色圓月前輕抬雙手，粉紅衣裙與藍色裙襬交疊，淡紫飄帶向四周舒展。藍色纖維紋理襯著人物，近看能看見花簪、耳飾、紅色繩結與衣褶的立體層次。', '52 × 62 × 8', '人物神情與手勢塑形、花簪層疊、衣褶與飄帶立體塑形、繩結細節、深框裝裱', '木色外框搭配米白裱褙、深色內框與細金線，映襯藍色纖維紙景；四格圖呈現框角、斜側、人物與飄帶的細節。'],
+      'chang-e-green-frame': ['人物', '金橙圓月與青綠紙景相映，淡紫飄帶和紅色長繩伴著嫦娥舒展。', '金橙圓月懸在深綠紙景中，嫦娥身著粉紅與藍色衣裙，抬手回望。淡紫飄帶環繞身形，紅色長繩延伸至象牙白裙襬，青綠外框收束整幅月下紙景。', '56.5 × 66.5 × 7.5', '人物神情與手勢塑形、花簪層疊、衣褶與飄帶立體塑形、長繩細節、深框裝裱', '青綠外框搭配米白裱褙、深色內框與細金線，呼應深綠紙景；四格圖呈現框角、斜側、人物與飄帶的細節。']
+    };
+    WORKS.forEach(work => {
+      const [category, summary, story, dimensions, features, framing] = ARTWORK_DETAILS[work.slug];
+      Object.assign(work, { category, summary, story, dimensions, features, framing, medium: '紙材、複合媒材、框裝' });
+    });
+    const MATERIAL_FIELDS = [
+      { id: 'title', label: '發布日期／作品名稱', required: true, example: '2026/○/○，介紹《荷韻雙鯉》' },
+      { id: 'details', label: '作品資料', required: true, example: '立體紙雕原作；尺寸、紙材、是否含框依實際填寫' },
+      { id: 'closeup', label: '想讓人靠近看的細節', required: true, example: '舒展的荷葉、相迎的雙鯉，以及紙張起伏形成的光影' },
+      { id: 'story', label: '創作小故事／今天的心情', required: true, example: '為什麼做這件作品？哪個地方最費心？完成時有什麼感受？' },
+      { id: 'audience', label: '適合誰／擺放情境', required: false, example: '依作品填：喜歡花鳥題材的人、居家欣賞，或送給重視手作的朋友' },
+      { id: 'sharing', label: '這次想分享什麼／怎麼詢問', required: true, example: '分享光影變化；作品詢問請透過 IG 或 FB 私訊' },
+      { id: 'private', label: '先不要講的', required: true, example: '例如：價格尚未公開、未完成的新作暫不曝光；沒有就填「無」' },
+      { id: 'uncertain', label: '還不確定的 ❓', required: true, example: '例如：尺寸待確認、是否開放收藏待確認；沒有就填「無」' }
+    ];
+    // ===== 版面與即時預覽；頁面末端另接存檔與自動暫存 =====
+    document.title = `${BRAND_NAME}｜社群工作台`;
+    document.getElementById('workbench-title').textContent = document.title;
+    document.querySelector('.footer').textContent = `${BRAND_NAME}｜在紙材與光影之間，收藏生活的風景。`;
+    const form = document.getElementById('material-form');
+    form.addEventListener('submit', event => event.preventDefault());
+    MATERIAL_FIELDS.forEach(field => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'field';
+      const label = document.createElement('label');
+      label.htmlFor = `material-field-${field.id}`;
+      label.textContent = field.label;
+      const badge = document.createElement('span');
+      badge.className = `requirement${field.required ? '' : ' optional'}`;
+      badge.textContent = field.required ? '必填' : '選填';
+      label.append(badge);
+      const input = document.createElement('textarea');
+      input.id = label.htmlFor;
+      input.name = field.id;
+      input.rows = 2;
+      input.required = field.required;
+      input.placeholder = field.example;
+      wrapper.append(label, input);
+      form.append(wrapper);
+    });
+    const tabs = document.getElementById('platform-tabs');
+    const editor = document.getElementById('editor-container');
+    const postInput = document.getElementById('post-content');
+    const characterCount = document.getElementById('post-character-count');
+    const characterSegmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter('zh-Hant', { granularity: 'grapheme' }) : null;
+    function characterCountState(value, limit) {
+      const normalized = value.replace(/\r\n/g, '\n');
+      const count = characterSegmenter ? [...characterSegmenter.segment(normalized)].length : Array.from(normalized).length;
+      const hasLimit = Number.isInteger(limit) && limit >= 0;
+      const over = hasLimit && count > limit;
+      return { count, over, text: hasLimit ? `目前 ${count}／${limit} 字${over ? '｜超過了' : ''}` : `目前 ${count} 字｜未設定上限` };
+    }
+    function updateCharacterCount() {
+      const state = characterCountState(postInput.value, PLATFORM_CHARACTER_LIMITS[activePlatform]);
+      characterCount.textContent = state.text;
+      characterCount.classList.toggle('is-over', state.over);
+    }
+    const preview = document.getElementById('social-preview');
+    const posts = new Map(PLATFORMS.map(platform => [platform, '']));
+    let activePlatform = PLATFORMS[0];
+    let selectedWork = WORKS.find(work => work.slug === 'lotus-and-koi');
+    const workSelect = document.getElementById('work-select');
+    WORKS.forEach(work => {
+      const option = document.createElement('option');
+      option.value = work.slug;
+      option.textContent = work.name;
+      workSelect.append(option);
+    });
+    workSelect.value = selectedWork.slug;
+    function updateSelectedWork() {
+      const image = document.getElementById('work-thumbnail');
+      image.src = selectedWork.image;
+      image.alt = `${selectedWork.name}完整含框原作`;
+      document.getElementById('work-name').textContent = selectedWork.name;
+      document.getElementById('work-source').href = selectedWork.url;
+      document.getElementById('work-status').textContent = '';
+    }
+    workSelect.addEventListener('change', () => {
+      selectedWork = WORKS.find(work => work.slug === workSelect.value);
+      updateSelectedWork();
+      renderPreview();
+    });
+    document.getElementById('use-work').addEventListener('click', () => generateWithSettings());
+    function buildArtworkDraft(work, date) {
+      // 使用已核對的網站文字組成初稿，不虛構創作經歷、價格或即時庫存。
+      const signature = `${BRAND_NAME}｜一紙入境，歲月成景。`;
+      const inquiry = '作品詢問，歡迎透過 Instagram 或 Facebook 私訊。';
+      const dimensions = `含框尺寸：${work.dimensions} 公分（寬 × 高 × 厚）。`;
+      const material = {
+        title: `${addWeekdays(taipeiDate(date))}，介紹《${work.name}》`,
+        details: `《${work.name}》｜${work.category}系列\n媒材：${work.medium}。\n${dimensions}\n含框；手工測量，尺寸僅供參考。\n裝裱說明：${work.framing}\n資料來源：${work.url}`,
+        closeup: `${work.features}。\n${work.description}。`,
+        story: work.story,
+        audience: `情境建議：喜歡${work.category}題材與手工紙藝的人；居家欣賞、藝術收藏，或作為有心意的禮物。擺放前可先依含框尺寸確認空間。`,
+        sharing: `${work.summary}\n想分享：${work.features}。\n${inquiry}`,
+        private: '無',
+        uncertain: '目前收藏狀態、作品價格與交付安排需私訊確認；不在貼文中自行填寫。'
+      };
+      const firstDetail = work.features.split('、')[0];
+      const question = `靠近看，你會先留意${firstDetail}，還是整幅作品的光影？`;
+      const tags = `#${BRAND_NAME.replace(/\s/g, '')} #${work.name.replace(/[\s・]/g, '')} #立體紙雕`;
+      const captions = {
+        Instagram: `${work.summary}\n\n《${work.name}》\n${work.story}\n\n${question}\n\n${signature}\n${tags}`,
+        Facebook: `《${work.name}》｜${work.category}系列\n\n${work.summary}\n\n${work.story}\n\n靠近一點，可以留意${work.features}。\n${work.framing}\n\n媒材：${work.medium}\n${dimensions}\n手工測量，尺寸僅供參考。\n\n${question}\n${inquiry}\n\n${signature}`,
+        Threads: `今天，靠近《${work.name}》一點。\n\n${work.summary}\n${work.story}\n\n${question}`
+      };
+      return { material, posts: captions };
+    }
+    updateSelectedWork();
+    function showText(element, value, placeholder) {
+      element.textContent = value.trim() ? value : placeholder;
+      element.classList.toggle('is-placeholder', !value.trim());
+    }
+    function renderPreview() {
+      // 以下模板只有固定版面；所有輸入一律透過 textContent 顯示。
+      const avatar = '<div class="avatar" aria-hidden="true"></div>';
+      const profile = `<div class="profile">${avatar}<div><div class="profile-name" data-name></div>${activePlatform === 'Facebook' ? '<div class="profile-note">剛剛</div>' : ''}</div><span class="more" aria-hidden="true">•••</span></div>`;
+      const text = '<p class="post-text" data-post></p>';
+      if (activePlatform === 'Facebook') {
+        preview.innerHTML = `${profile}${text}<div class="social-image facebook-image is-placeholder">作品圖片預留區</div><div class="social-actions facebook-actions"><span>讚</span><span>留言</span><span>分享</span></div>`;
+      } else if (activePlatform === 'Instagram') {
+        preview.innerHTML = `${profile}<div class="social-image"><div class="image-title" data-image-title></div></div><div class="social-actions" aria-label="喜歡、留言、分享"><span>♡</span><span>💬</span><span>➤</span></div>${text}`;
+      } else if (activePlatform === 'Threads') {
+        preview.innerHTML = `<div class="thread-row">${avatar}<div class="thread-body"><div class="thread-heading"><span class="profile-name" data-name></span><span class="profile-note">剛剛</span></div>${text}</div></div>`;
+      } else {
+        preview.replaceChildren();
+        return;
+      }
+      const avatarImage = document.createElement('img');
+      avatarImage.src = `${BRAND_WEBSITE}/optimized/brand-mark.webp`;
+      avatarImage.alt = '';
+      preview.querySelector('.avatar').append(avatarImage);
+      const imageArea = preview.querySelector('.social-image');
+      if (imageArea) {
+        if (activePlatform === 'Facebook') imageArea.replaceChildren();
+        const workImage = document.createElement('img');
+        workImage.src = selectedWork.image;
+        workImage.alt = `${selectedWork.name}完整含框原作`;
+        workImage.addEventListener('error', () => {
+          workImage.hidden = true;
+          const notice = document.createElement('span');
+          notice.className = 'is-placeholder';
+          notice.textContent = '作品圖片暫時無法載入';
+          imageArea.prepend(notice);
+        });
+        imageArea.prepend(workImage);
+      }
+      const name = preview.querySelector('[data-name]');
+      if (activePlatform === 'Facebook') name.textContent = BRAND_NAME;
+      else showText(name, ACCOUNT_NAME, '帳號名稱尚未填寫');
+      updatePreviewContent();
+      preview.scrollTop = 0;
+      document.querySelector('.phone').setAttribute('aria-label', `${activePlatform} 手機貼文預覽`);
+    }
+    function updatePreviewContent() {
+      updateCharacterCount();
+      const content = preview.querySelector('[data-post]');
+      if (content) showText(content, posts.get(activePlatform) || '', '在中間輸入貼文，這裡會立即顯示內容。');
+      const imageTitle = preview.querySelector('[data-image-title]');
+      const firstField = form.querySelector('textarea');
+      if (imageTitle) showText(imageTitle, firstField ? firstField.value : '', '在素材卡第一格填寫\n發布日期／作品名稱');
+    }
+    postInput.addEventListener('input', () => {
+      posts.set(activePlatform, postInput.value);
+      updatePreviewContent();
+    });
+    form.addEventListener('input', updatePreviewContent);
+    PLATFORMS.forEach((platform, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'platform-tab';
+      button.id = `platform-${index}`;
+      button.textContent = platform;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-controls', 'editor-container');
+      button.setAttribute('aria-selected', String(index === 0));
+      button.tabIndex = index === 0 ? 0 : -1;
+      if (index === 0) editor.setAttribute('aria-labelledby', button.id);
+      button.addEventListener('click', () => {
+        posts.set(activePlatform, postInput.value);
+        activePlatform = platform;
+        postInput.value = posts.get(platform);
+        [...tabs.children].forEach(tab => {
+          tab.setAttribute('aria-selected', String(tab === button));
+          tab.tabIndex = tab === button ? 0 : -1;
+        });
+        editor.setAttribute('aria-labelledby', button.id);
+        renderPreview();
+        renderCheckResults();
+      });
+      button.addEventListener('keydown', event => {
+        const keys = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        const count = tabs.children.length;
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? count - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + count) % count;
+        tabs.children[next].focus();
+        tabs.children[next].click();
+      });
+      tabs.append(button);
+    });
+    renderPreview();
+
+    // ===== 設定與組合指令 =====
+    const SETTINGS_KEY = 'xiujing-social-workbench-settings';
+    const settingsDialog = document.getElementById('settings-dialog');
+    const promptDialog = document.getElementById('prompt-dialog');
+    const brandSpecInput = document.getElementById('brand-spec');
+    const checklistInput = document.getElementById('checklist');
+    const settingsStatus = document.getElementById('settings-status');
+    const promptOutput = document.getElementById('prompt-output');
+    const copyStatus = document.getElementById('copy-status');
+    let settings = { brandSpec: '', checklist: '' };
+    let storageMessage = '';
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
+      if (saved && typeof saved === 'object') {
+        if (typeof saved.brandSpec === 'string') settings.brandSpec = saved.brandSpec;
+        if (typeof saved.checklist === 'string') settings.checklist = saved.checklist;
+      }
+    } catch {
+      storageMessage = '無法讀取已存設定，請重新貼上內容並儲存。';
+    }
+    document.getElementById('open-settings').addEventListener('click', () => {
+      brandSpecInput.value = settings.brandSpec;
+      checklistInput.value = settings.checklist;
+      settingsStatus.textContent = storageMessage;
+      settingsDialog.showModal();
+    });
+    document.querySelectorAll('[data-close]').forEach(button => {
+      button.addEventListener('click', () => document.getElementById(button.dataset.close).close());
+    });
+    document.getElementById('save-settings').addEventListener('click', () => {
+      settings = { brandSpec: brandSpecInput.value, checklist: checklistInput.value };
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        storageMessage = '';
+        settingsStatus.textContent = '已儲存，下次開啟網頁仍會保留。';
+      } catch {
+        storageMessage = '瀏覽器無法儲存設定；內容目前僅保留在此頁，請先備份文字。';
+        settingsStatus.textContent = storageMessage;
+      }
+    });
+    function addWeekdays(value) {
+      // 只處理含完整西元年份的日期；不推測年份，也不修正無效日期。
+      return value.replace(/(?<!\d)(\d{4})(?:[\/-](\d{1,2})[\/-](\d{1,2})|年(\d{1,2})月(\d{1,2})日)(?!\d)(?:[（(](?:[日一二三四五六]|(?:星期|週)[日天一二三四五六])[）)])?/g,
+        (match, year, month, day, chineseMonth, chineseDay) => {
+          const y = Number(year), m = Number(month || chineseMonth), d = Number(day || chineseDay);
+          const date = new Date(0);
+          date.setUTCFullYear(y, m - 1, d);
+          if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return match;
+          return `${year}/${String(m).padStart(2, '0')}/${String(d).padStart(2, '0')}（${'日一二三四五六'[date.getUTCDay()]}）`;
+        });
+    }
+    function buildPrompt() {
+      const platformLabels = { Facebook: 'FB', Instagram: 'IG', Threads: 'Threads' };
+      const headings = PLATFORMS.map(platform => `【${platformLabels[platform] || platform}】`).join('、');
+      const materials = MATERIAL_FIELDS.map(field => {
+        const value = document.getElementById(`material-field-${field.id}`).value;
+        return `${field.label}：\n${value.trim() ? addWeekdays(value) : '（未填）'}`;
+      }).join('\n\n');
+      const sections = [
+        '（這段只要回覆文字，不要建立或修改任何檔案。）',
+        `你是【${BRAND_NAME}】的小編。請照品牌規格，用素材卡的內容，寫【${PLATFORMS.join('、')}】的貼文，每個平台一篇。`,
+        '規則：\n素材卡上沒有的事不要寫。\n只能在某個平台說的，只寫在那個平台。\n先不要講的，每一篇都不能寫。\n還不確定的不要寫，寫完列出來問我。',
+        `回覆格式：每個平台用${headings}這樣的標題分開。`,
+        `品牌規格全文：\n${settings.brandSpec.trim() ? settings.brandSpec : '（未填，請先補充品牌規格）'}`,
+        `素材卡：\n${materials}`
+      ];
+      if (settings.checklist.trim()) sections.push(`寫完照這張清單檢查，有 ❌ 先自己改好\n${settings.checklist}`);
+      return sections.join('\n\n');
+    }
+    document.getElementById('assemble-prompt').addEventListener('click', () => {
+      promptOutput.value = buildPrompt();
+      copyStatus.textContent = '';
+      promptDialog.showModal();
+    });
+    document.getElementById('copy-prompt').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(promptOutput.value);
+        copyStatus.textContent = '已複製指令。';
+      } catch {
+        // 本機檔案或未開放剪貼簿權限時，嘗試傳統複製方式。
+        promptOutput.focus();
+        promptOutput.select();
+        let copied = false;
+        try { copied = document.execCommand('copy'); } catch { /* 保留選取供手動複製 */ }
+        copyStatus.textContent = copied ? '已複製指令。' : '無法自動複製，已選取全文，請按 Ctrl+C 或使用選單複製。';
+      }
+    });
+
+    // ===== 本機明確規則檢查；不需要連線或金鑰 =====
+    let checkReport = null;
+    function currentMaterials() {
+      return Object.fromEntries(MATERIAL_FIELDS.map(field => [field.id, document.getElementById(`material-field-${field.id}`).value]));
+    }
+    function parseLocalChecklist(value) {
+      return value.split(/\r?\n/).map(line => line.trim()).filter(line => line && !/^(?:#|>|```|---)/.test(line))
+        .map(line => line.replace(/^(?:[-*+]\s+(?:\[[ xX]\]\s*)?|\d+[.、)）]\s*)/, ''))
+        .filter(line => !/^(?:每篇每條|有\s*❌|寫完照這張清單)/.test(line));
+    }
+    function localRules(brandSpec, checklist = '') {
+      const clean = value => value.replace(/[*`]/g, '').replace(/^[\s\-•]+/, '').trim();
+      const banned = new Set(['便宜', '爆款', '秒殺', '保證升值', '全台第一']);
+      const sections = { Instagram: '', Facebook: '', Threads: '' };
+      const aliases = { ig: 'Instagram', instagram: 'Instagram', fb: 'Facebook', facebook: 'Facebook', threads: 'Threads' };
+      let inBanned = false, platform = '';
+      for (const raw of brandSpec.split(/\r?\n/)) {
+        const line = clean(raw), plain = line.replace(/^#+\s*/, '');
+        const heading = plain.match(/^(Instagram|Facebook|Threads|IG|FB)(?=[｜：:\s]|$)/i);
+        if (heading) platform = aliases[heading[1].toLowerCase()];
+        else if (/^#{1,2}\s/.test(raw)) platform = '';
+        if (platform) sections[platform] += `${plain}\n`;
+        if (/(?:不能用的字|禁用字|不得使用的字)/.test(plain)) {
+          inBanned = true;
+          const inline = plain.split(/[：:]/).slice(1).join('：');
+          if (inline) inline.split(/[、，,；;]/).map(clean).filter(Boolean).forEach(word => banned.add(word.replace(/[「」『』]/g, '')));
+          continue;
+        }
+        if (/^#+\s/.test(raw)) inBanned = false;
+        if (inBanned && /^\s*[-*•]\s+/.test(raw)) line.split(/[、，,；;]/).map(clean).filter(word => word && word.length <= 15).forEach(word => banned.add(word.replace(/[「」『』]/g, '')));
+        for (const match of plain.matchAll(/(?:不要用|不能用|禁用|避免使用)[「『]([^」』]+)[」』]/g)) banned.add(match[1]);
+      }
+      const signatureLine = brandSpec.split(/\r?\n/).map(clean).find(line => /^(?:品牌署名|固定署名|固定結尾)[：:]/.test(line)) || '';
+      const signatureMatch = signatureLine.match(/^(?:品牌署名|固定署名|固定結尾)[：:]\s*(.+)/);
+      const signature = signatureMatch ? clean(signatureMatch[1]).replace(/^[「『]|[」』]$/g, '') : brandSpec.includes('一紙入境，歲月成景。') ? `${BRAND_NAME}｜一紙入境，歲月成景。` : '';
+      return { banned: [...banned], signature, sections, requireInquiry: /怎麼做|怎麼買|怎麼預約|詢問|聯絡/.test(checklist) };
+    }
+    function fixedEnding(platform, rules) {
+      const match = rules.sections[platform].match(/(?:固定結尾|固定署名)[：:]\s*([^\n]+)/);
+      if (match) return match[1].replace(/[*`「」『』]/g, '').trim();
+      return platform === 'Threads' ? '' : rules.signature;
+    }
+    function restrictionTerms(value) {
+      if (!value.trim() || /^無[。\s]*$/.test(value)) return [];
+      const terms = value.split(/[、，,；;\n]/).map(value => value.trim()).filter(value => value.length >= 2 && value.length <= 20 && !/沒有|不要寫|自行填寫|私訊確認/.test(value));
+      if (/尺寸/.test(value)) terms.push('尺寸', '公分');
+      if (/價格|售價|價錢/.test(value)) terms.push('價格', '售價', '元', 'NT$');
+      if (/交期|交付|寄送/.test(value)) terms.push('交期', '交付', '寄送');
+      if (/收藏狀態|庫存|可收藏/.test(value)) terms.push('可收藏', '已收藏', '庫存');
+      return [...new Set(terms)];
+    }
+    function localNumberErrors(text, material) {
+      const source = Object.entries(material).filter(([key]) => !['private', 'uncertain'].includes(key)).map(([, value]) => value).join('\n');
+      const allowed = new Set(source.match(/\d+(?:\.\d+)?/g) || []);
+      const errors = (text.match(/\d+(?:\.\d+)?/g) || []).filter(value => !allowed.has(value));
+      const tuples = value => (value.match(/\d+(?:\.\d+)?\s*[×xｘ*]\s*\d+(?:\.\d+)?\s*[×xｘ*]\s*\d+(?:\.\d+)?/g) || []).map(value => value.replace(/\s/g, '').replace(/[xｘ*]/g, '×'));
+      const knownTuples = new Set(tuples(source));
+      tuples(text).forEach(value => { if (!knownTuples.has(value)) errors.push(value); });
+      const dates = value => (value.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g) || []).map(value => value.split(/[\/-]/).map(Number).join('/'));
+      const knownDates = new Set(dates(source));
+      dates(text).forEach(value => { if (!knownDates.has(value)) errors.push(value); });
+      return [...new Set(errors)];
+    }
+    function repairLocalPost(text, platform, material, rules) {
+      if (!text.trim()) return { text: '', changes: [] };
+      const changes = [];
+      let result = addWeekdays(text);
+      if (result !== text) changes.push('修正完整日期的星期');
+      const prohibited = [...rules.banned, '快來', '手刀', '錯過可惜', '最後機會', ...restrictionTerms(material.private || ''), ...restrictionTerms(material.uncertain || '')];
+      result = result.split('\n').map(line => line.split(/(?<=[。！？])/u).filter(sentence => {
+        if (prohibited.some(word => word && sentence.includes(word))) { changes.push('移除含禁用字、催促字或限制資訊的句子'); return false; }
+        if (localNumberErrors(sentence, material).length) { changes.push('移除含素材卡以外數字、日期或尺寸的句子'); return false; }
+        return true;
+      }).join('').trim()).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+      if (/不(?:放|加|使用)\s*(?:hashtag|標籤|#)/i.test(rules.sections[platform])) {
+        const withoutTags = result.replace(/#[^\s#]+/g, '').replace(/\n{3,}/g, '\n\n').trim();
+        if (withoutTags !== result) { result = withoutTags; changes.push('依平台設定移除標籤'); }
+      }
+      const ending = fixedEnding(platform, rules);
+      const defaultEnding = `${BRAND_NAME}｜一紙入境，歲月成景。`;
+      if (ending && ending !== defaultEnding && result.includes(defaultEnding)) {
+        result = result.replaceAll(defaultEnding, '').replace(/\n{3,}/g, '\n\n').trim(); changes.push('替換原有的預設署名');
+      }
+      if (ending && !result.includes(ending) && !prohibited.some(word => ending.includes(word))) {
+        result = `${result}\n\n${ending}`.trim(); changes.push('補上設定中的固定結尾');
+      }
+      const inquiry = (material.sharing || '').match(/(?:作品詢問[^。\n]*|歡迎透過[^。\n]*私訊)[。]?/);
+      if ((platform !== 'Threads' || rules.requireInquiry) && inquiry && !/私訊|詢問/.test(result) && !prohibited.some(word => inquiry[0].includes(word))) {
+        result += `\n\n${inquiry[0]}`; changes.push('補上素材卡中的作品詢問方式');
+      }
+      return { text: result.trim(), changes: [...new Set(changes)] };
+    }
+    function inspectLocalPost(text, platform, material, brandSpec, checklist) {
+      const rules = localRules(brandSpec);
+      const numericErrors = localNumberErrors(text, material);
+      return parseLocalChecklist(checklist).map(item => {
+        let status = 'unknown', explanation = '待人工確認：此條需要理解完整語意，未自動判定通過。';
+        const result = (ok, message) => { status = ok ? 'pass' : 'fail'; explanation = message; };
+        if (!text.trim()) return { item, status: 'fail', explanation: '貼文尚未填寫，無法完成檢查。' };
+        if (/口氣|讀起來|像我們|故事|風味|產地|材質|得獎|驚喜|名額/.test(item)) {
+          explanation = '待人工確認：語氣、故事與素材以外的事實需逐句對照；本機檢查不判定真偽。';
+          if (numericErrors.length) result(false, `仍有素材卡以外的數字：${[...new Set(numericErrors)].join('、')}。`);
+        } else if (/不能用|禁用/.test(item)) {
+          const found = rules.banned.filter(word => text.includes(word));
+          result(!found.length, found.length ? `仍有禁用字：${found.join('、')}` : `已比對明確禁用字：${rules.banned.join('、')}。`);
+        } else if (/催|快來|手刀/.test(item)) {
+          const found = ['快來', '手刀', '錯過可惜', '最後機會'].filter(word => text.includes(word));
+          if (found.length) result(false, `仍有催促字：${found.join('、')}`);
+          else explanation = '待人工確認：已排除「快來、手刀、錯過可惜、最後機會」；其他催促語意仍需人工閱讀。';
+        } else if (/日期|星期|數字|價格|尺寸|時間/.test(item)) {
+          const weekdayOK = addWeekdays(text) === text;
+          if (numericErrors.length || !weekdayOK) result(false, '仍有數字或日期星期不符合明確規則。');
+          else if (/價格|時間/.test(item) && /\d+\s*(?:元|點|時)|\d+:\d+/.test(text)) explanation = '待人工確認：數字已與素材卡比對，價格與時間的完整意義仍需人工核對。';
+          else result(true, '已核對完整日期星期，並比對貼文中的阿拉伯數字是否存在素材卡；未出現的日期或數字不另行補寫。');
+        } else if (/先不要講|未公開|還不確定/.test(item)) {
+          const privateText = material.private || '';
+          const found = restrictionTerms(privateText).filter(word => text.includes(word));
+          if (found.length) result(false, `仍有可能不公開的內容：${found.join('、')}。`);
+          else if (/^無[。\s]*$/.test(privateText)) result(true, '素材卡的「先不要講的」為「無」。');
+          else explanation = '待人工確認：已按字面排除限制詞；完整的不公開範圍仍需確認。';
+        } else if (/固定結尾|固定署名/.test(item)) {
+          const ending = fixedEnding(platform, rules);
+          if (ending) result(text.includes(ending), text.includes(ending) ? `已包含固定結尾：${ending}` : `缺少固定結尾：${ending}`);
+          else explanation = '待人工確認：此平台未解析到明確固定結尾；未強制套用其他平台規則。';
+        } else if (/怎麼做|怎麼買|怎麼預約|詢問|聯絡/.test(item)) {
+          result(/私訊|詢問|聯絡/.test(text), /私訊|詢問|聯絡/.test(text) ? '貼文含作品詢問或私訊方式；請再確認實際帳號是否正確。' : '未找到明確聯絡方式；若此篇只分享日記，請人工確認是否需要加入。');
+        } else if (/只能在|平台|跨平台/.test(item)) {
+          explanation = '待人工確認：已套用可辨識的平台固定結尾與標籤規則，其餘平台限定資訊需人工對照。';
+        }
+        return { item, status, explanation };
+      });
+    }
+    function renderCheckResults() {
+      const box = document.getElementById('check-results'); box.replaceChildren();
+      const add = text => { const p = document.createElement('p'); p.className = 'save-status'; p.textContent = text; box.append(p); };
+      if (!checkReport) { add('尚未執行檢查；可生成新稿，或按「檢查並修正目前貼文」。'); return; }
+      const post = checkReport.posts.find(post => post.platform === activePlatform);
+      const unchanged = checkReport.engine === 'local' && PLATFORMS.every(platform => checkReport.posts.some(entry => entry.platform === platform && entry.text === (platform === activePlatform ? postInput.value : posts.get(platform)))) && checkReport.brandSpec === settings.brandSpec && checkReport.checklist === settings.checklist && JSON.stringify(checkReport.materials) === JSON.stringify(currentMaterials()) && checkReport.workSlug === selectedWork.slug;
+      add(unchanged ? '✅ 明確規則通過　❌ 仍需修正　❓ 待人工確認。任意文字規則不會自動理解。' : '內容或設定已改變，以下為上次記錄，請重新檢查。');
+      if (!post) return;
+      if (!post.checks.length) add('設定中尚未填入檢查清單，目前只有基本規則修正；請到「⚙ 設定」填入清單後重新檢查。');
+      post.checks.forEach(check => {
+        const row = document.createElement('div'); row.className = 'check-item';
+        const title = document.createElement('strong'); title.textContent = `${check.status === 'pass' ? '✅' : check.status === 'fail' ? '❌' : '❓'} ${check.item}`;
+        const note = document.createElement('p'); note.textContent = check.explanation;
+        row.append(title, note); box.append(row);
+      });
+      if (post.changes.length) add(`已修正：${post.changes.join('；')}`);
+      if (checkReport.questions.length) add(`待確認：${checkReport.questions.join('；')}`);
+    }
+    function checkAndRepairPosts(material) {
+      const rules = localRules(settings.brandSpec, settings.checklist);
+      const reports = PLATFORMS.map(platform => {
+        const repaired = repairLocalPost(posts.get(platform) || '', platform, material, rules);
+        posts.set(platform, repaired.text);
+        return { platform, text: repaired.text, changes: repaired.changes, checks: inspectLocalPost(repaired.text, platform, material, settings.brandSpec, settings.checklist) };
+      });
+      checkReport = { engine: 'local', posts: reports, questions: reports.some(post => post.checks.some(check => check.status === 'unknown')) ? ['標示「待人工確認」的項目需自行閱讀核對。'] : [], materials: material, brandSpec: settings.brandSpec, checklist: settings.checklist, workSlug: selectedWork.slug, checkedAt: new Date().toISOString() };
+      postInput.value = posts.get(activePlatform);
+      renderPreview(); renderCheckResults(); autoSaveDraft();
+    }
+    function generateWithSettings() {
+      const baseline = buildArtworkDraft(selectedWork, new Date());
+      const existing = currentMaterials();
+      const sameWork = !existing.title.trim() || existing.title.includes(selectedWork.name);
+      const material = Object.fromEntries(MATERIAL_FIELDS.map(field => [field.id, addWeekdays(((sameWork || ['private', 'uncertain'].includes(field.id)) && existing[field.id].trim()) ? existing[field.id] : baseline.material[field.id])]));
+      MATERIAL_FIELDS.forEach(field => { document.getElementById(`material-field-${field.id}`).value = material[field.id]; });
+      PLATFORMS.forEach(platform => posts.set(platform, baseline.posts[platform] || ''));
+      checkAndRepairPosts(material);
+      document.getElementById('work-status').textContent = '已在本機組好三平台初稿，並依設定檢查明確規則；語氣與故事等項目請看「待人工確認」。';
+    }
+    document.getElementById('check-posts').addEventListener('click', () => {
+      posts.set(activePlatform, postInput.value);
+      const material = currentMaterials();
+      MATERIAL_FIELDS.forEach(field => { material[field.id] = addWeekdays(material[field.id]); document.getElementById(`material-field-${field.id}`).value = material[field.id]; });
+      checkAndRepairPosts(material);
+    });
+    form.addEventListener('input', renderCheckResults);
+    postInput.addEventListener('input', renderCheckResults);
+    workSelect.addEventListener('change', renderCheckResults);
+    document.getElementById('save-settings').addEventListener('click', renderCheckResults);
+
+    // ===== 貼文存檔與自動暫存；與品牌設定分開儲存 =====
+    const POSTS_KEY = 'xiujing-social-workbench-posts-v1';
+    const saveStatus = document.getElementById('save-status');
+    const postsDialog = document.getElementById('posts-dialog');
+    const savedPostsList = document.getElementById('saved-posts-list');
+    const postsStatus = document.getElementById('posts-status');
+    let postStore = { entries: [], draft: null };
+    let currentPostId = makePostId();
+    function makePostId() {
+      return typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `post-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    function capturePost() {
+      posts.set(activePlatform, postInput.value);
+      return {
+        id: currentPostId,
+        material: Object.fromEntries(MATERIAL_FIELDS.map(field => [field.id, document.getElementById(`material-field-${field.id}`).value])),
+        posts: Object.fromEntries(posts),
+        activePlatform,
+        workSlug: selectedWork ? selectedWork.slug : '',
+        checkReport
+      };
+    }
+    function persistPostStore(nextStore) {
+      // 成功寫入才更新記憶中的清單，避免把儲存失敗誤報為成功。
+      try {
+        localStorage.setItem(POSTS_KEY, JSON.stringify(nextStore));
+        postStore = nextStore;
+        return true;
+      } catch {
+        saveStatus.textContent = '瀏覽器儲存失敗，請先複製內容備份，再確認儲存空間與權限。';
+        return false;
+      }
+    }
+    function autoSaveDraft() {
+      const draft = { ...capturePost(), updatedAt: new Date().toISOString() };
+      if (persistPostStore({ ...postStore, draft })) saveStatus.textContent = '已自動暫存於此瀏覽器。';
+    }
+    function restorePost(record) {
+      currentPostId = typeof record.id === 'string' && record.id ? record.id : makePostId();
+      MATERIAL_FIELDS.forEach(field => {
+        const value = record.material && record.material[field.id];
+        document.getElementById(`material-field-${field.id}`).value = typeof value === 'string' ? value : '';
+      });
+      PLATFORMS.forEach(platform => {
+        const value = record.posts && record.posts[platform];
+        posts.set(platform, typeof value === 'string' ? value : '');
+      });
+      activePlatform = PLATFORMS.includes(record.activePlatform) ? record.activePlatform : PLATFORMS[0];
+      postInput.value = posts.get(activePlatform);
+      [...tabs.children].forEach((tab, index) => {
+        const selected = PLATFORMS[index] === activePlatform;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        if (selected) editor.setAttribute('aria-labelledby', tab.id);
+      });
+      selectedWork = WORKS.find(work => work.slug === record.workSlug) || WORKS.find(work => work.slug === 'lotus-and-koi') || WORKS[0];
+      workSelect.value = selectedWork.slug;
+      updateSelectedWork();
+      renderPreview();
+      const report = record.checkReport;
+      checkReport = report && Array.isArray(report.questions) && Array.isArray(report.posts) && report.posts.every(post => typeof post.text === 'string' && Array.isArray(post.changes) && Array.isArray(post.checks) && post.checks.every(check => check && typeof check.item === 'string' && typeof check.explanation === 'string')) ? report : null;
+      renderCheckResults();
+    }
+    function taipeiDate(value) {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(value);
+      const get = type => parts.find(part => part.type === type).value;
+      return `${get('year')}/${get('month')}/${get('day')}`;
+    }
+    function displaySavedTime(value) {
+      const date = new Date(value);
+      if (!Number.isFinite(date.getTime())) return '時間未記錄';
+      return new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(date);
+    }
+    function renderSavedPosts() {
+      savedPostsList.replaceChildren();
+      if (!postStore.entries.length) {
+        const empty = document.createElement('p');
+        empty.className = 'save-status';
+        empty.textContent = '還沒有存檔的貼文。完成內容後，按「💾 存檔」就會出現在這裡。';
+        savedPostsList.append(empty);
+        return;
+      }
+      [...postStore.entries].sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || '')).forEach(record => {
+        const row = document.createElement('div');
+        row.className = 'saved-post';
+        const info = document.createElement('div');
+        info.className = 'saved-post-info';
+        const name = document.createElement('p');
+        name.className = 'saved-post-name';
+        name.textContent = record.name || '未命名貼文';
+        const time = document.createElement('p');
+        time.className = 'saved-post-time';
+        time.textContent = `存檔時間：${displaySavedTime(record.savedAt)}`;
+        info.append(name, time);
+        const actions = document.createElement('div');
+        actions.className = 'saved-post-actions';
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'action-button';
+        open.textContent = '打開';
+        open.addEventListener('click', () => {
+          restorePost(record);
+          autoSaveDraft();
+          postsDialog.close();
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'action-button';
+        remove.textContent = '刪除';
+        remove.addEventListener('click', () => {
+          if (!window.confirm('確定嗎？')) return;
+          const entries = postStore.entries.filter(entry => entry.id !== record.id);
+          // 刪除目前開啟的存檔後，編輯中的文字仍保留為一份新草稿。
+          const nextId = currentPostId === record.id ? makePostId() : currentPostId;
+          const draft = { ...capturePost(), id: nextId, updatedAt: new Date().toISOString() };
+          if (persistPostStore({ entries, draft })) {
+            currentPostId = nextId;
+            renderSavedPosts();
+            postsStatus.textContent = '已刪除存檔。';
+            saveStatus.textContent = '目前編寫內容已暫存。';
+          } else postsStatus.textContent = '刪除失敗，原存檔仍保留，請確認瀏覽器儲存空間與權限。';
+        });
+        actions.append(open, remove);
+        row.append(info, actions);
+        savedPostsList.append(row);
+      });
+    }
+    document.getElementById('save-post').addEventListener('click', () => {
+      const snapshot = capturePost();
+      const now = new Date();
+      const title = snapshot.material[MATERIAL_FIELDS[0].id].trim() || '未命名貼文';
+      const record = { ...snapshot, name: `${taipeiDate(now)}｜${title}`, savedAt: now.toISOString() };
+      const entries = postStore.entries.filter(entry => entry.id !== currentPostId);
+      entries.push(record);
+      if (persistPostStore({ entries, draft: { ...snapshot, updatedAt: record.savedAt } })) saveStatus.textContent = `已存檔：${record.name}（${displaySavedTime(record.savedAt)}）`;
+    });
+    document.getElementById('open-posts').addEventListener('click', () => {
+      postsStatus.textContent = '';
+      renderSavedPosts();
+      postsDialog.showModal();
+    });
+    document.getElementById('new-post').addEventListener('click', () => {
+      restorePost({ id: makePostId(), material: {}, posts: {}, activePlatform: PLATFORMS[0] });
+      autoSaveDraft();
+      if (postStore.draft && postStore.draft.id === currentPostId) saveStatus.textContent = '已開始新的一篇，原有存檔仍保留。';
+    });
+    // 直接於每次變更時暫存，重新整理前不用等待計時器。
+    form.addEventListener('input', autoSaveDraft);
+    postInput.addEventListener('input', autoSaveDraft);
+    tabs.addEventListener('click', autoSaveDraft);
+    workSelect.addEventListener('change', autoSaveDraft);
+    document.getElementById('use-work').addEventListener('click', autoSaveDraft);
+    try {
+      const saved = JSON.parse(localStorage.getItem(POSTS_KEY) || 'null');
+      if (saved && Array.isArray(saved.entries)) {
+        postStore = { entries: saved.entries.filter(record => record && typeof record.id === 'string'), draft: saved.draft && typeof saved.draft === 'object' ? saved.draft : null };
+        if (postStore.draft) {
+          restorePost(postStore.draft);
+          saveStatus.textContent = '已恢復上次編寫的內容。';
+        }
+      }
+    } catch {
+      saveStatus.textContent = '無法讀取貼文存檔，請先備份目前內容，並確認瀏覽器允許儲存資料。';
+    }
+  </script>
+</body>
+</html>
