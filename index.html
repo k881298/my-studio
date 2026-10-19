@@ -181,7 +181,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-lockup"><img class="brand-mark" src="https://xiujing-paper-art.k881298.chatgpt.site/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
+    <div class="brand-lockup"><img class="brand-mark" src="https://xiujing-paper-art.k881298.chatgpt.site/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝 v2｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
     <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
   </header>
   <div class="intro"><p class="quote">從一幅紙景，開始今天的分享。</p><a class="collection-link" href="https://xiujing-paper-art.k881298.chatgpt.site/works" target="_blank" rel="noopener">作品典藏 ↗</a></div>
@@ -333,7 +333,7 @@
     ];
     // ===== 版面與即時預覽；頁面末端另接存檔與自動暫存 =====
     document.title = `${BRAND_NAME}｜社群工作台`;
-    document.getElementById('workbench-title').textContent = document.title;
+    document.getElementById('workbench-title').textContent = `${BRAND_NAME} v2｜社群工作台`;
     document.querySelector('.footer').textContent = `${BRAND_NAME}｜在紙材與光影之間，收藏生活的風景。`;
     const form = document.getElementById('material-form');
     form.addEventListener('submit', event => event.preventDefault());
