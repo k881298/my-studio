@@ -58,6 +58,8 @@
     .picture-generation { margin: 16px 0; }
     .picture-generation label { display: block; margin-bottom: 7px; font-weight: 600; font-size: 13px; }
     .picture-generation textarea { min-height: 84px; margin-bottom: 10px; }
+    .picture-generation .picture-count { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; }
+    #picture-count { padding: 8px; border: 1px solid var(--line); border-radius: 7px; font: inherit; color: var(--ink); background: var(--surface); }
     #generate-picture:disabled, #plan-picture:disabled { background: var(--line); color: var(--muted); border-color: var(--line); cursor: wait; }
     .picture-plan-usage { white-space: pre-line; }
     .picture-lettering { margin: 18px 0; padding-top: 16px; border-top: 1px solid var(--line); }
@@ -302,7 +304,7 @@
         <div class="picture-generation">
           <label for="picture-prompt">圖片描述（要畫什麼）</label>
           <textarea id="picture-prompt" placeholder="描述主角、場景、光線，以及想呈現的感覺……"></textarea>
-          <div class="picture-actions"><button type="button" class="action-button primary-button" id="generate-picture">🎨 生圖</button><button type="button" class="action-button" id="plan-picture">🪄 AI 想圖再畫</button></div>
+          <div class="picture-actions"><button type="button" class="action-button primary-button" id="generate-picture">🎨 生圖</button><label class="picture-count" for="picture-count">張數<select id="picture-count"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option></select></label><button type="button" class="action-button" id="plan-picture">🪄 AI 想圖再畫</button></div>
           <p class="save-status" id="picture-plan-status" role="status"></p>
           <p class="ai-usage picture-plan-usage" id="picture-plan-usage" role="status"></p>
           <p class="save-status" id="picture-generation-status" role="status"></p>
@@ -960,9 +962,9 @@
       } else if (activePlatform === 'Instagram') {
         preview.innerHTML = `${profile}<div class="social-image"><div class="image-title" data-image-title></div></div><div class="social-actions" aria-label="喜歡、留言、分享"><span>♡</span><span>💬</span><span>➤</span></div>${text}`;
       } else if (activePlatform === 'Threads') {
-        preview.innerHTML = `<div class="thread-row">${avatar}<div class="thread-body"><div class="thread-heading"><span class="profile-name" data-name></span><span class="profile-note">剛剛</span></div>${text}${postPictures.length ? '<div class="social-image thread-picture"></div>' : ''}</div></div>`;
+        preview.innerHTML = `<div class="thread-row">${avatar}<div class="thread-body"><div class="thread-heading"><span class="profile-name" data-name></span><span class="profile-note">剛剛</span></div>${text}<div class="social-image thread-picture"></div></div></div>`;
       } else if (activePlatform === 'LINE') {
-        preview.innerHTML = `<div class="line-chat"><div class="line-row">${avatar}<div class="line-messages">${postPictures.length ? '<div class="line-bubble"><div class="social-image"></div></div>' : ''}<div class="line-bubble">${text}</div></div></div></div>`;
+        preview.innerHTML = `<div class="line-chat"><div class="line-row">${avatar}<div class="line-messages"><div class="line-bubble"><div class="social-image"></div></div><div class="line-bubble">${text}</div></div></div></div>`;
       } else {
         preview.replaceChildren();
         return;
@@ -977,7 +979,7 @@
       } else if (imageArea) {
         const main = postPictures.find(picture => picture.id === mainPictureId) || postPictures[0];
         if (main || activePlatform === 'Facebook') imageArea.replaceChildren();
-        if (main) {
+        if (main || activePlatform === 'Threads' || activePlatform === 'LINE') {
           const size = PIC_SIZE[activePlatform];
           imageArea.classList.add('has-main-picture'); imageArea.classList.remove('is-placeholder');
           if (size) imageArea.style.aspectRatio = `${size.width} / ${size.height}`;
@@ -1377,24 +1379,14 @@
       const button = document.getElementById('generate-picture');
       const plan = document.getElementById('plan-picture');
       button.disabled = imageGenerating || imagePlanning; plan.disabled = imageGenerating || imagePlanning;
+      document.getElementById('picture-count').disabled = imageGenerating || imagePlanning;
       button.textContent = imageGenerating ? '🎨 畫圖中…' : '🎨 生圖';
       plan.textContent = imagePlanning ? imageGenerating ? '🪄 畫圖中…' : '🪄 想圖中…' : '🪄 AI 想圖再畫';
     }
-    async function generatePicture({ fromPlan = false, promptSuffix = '', onCost = () => {} } = {}) {
-      if (imageGenerating || (imagePlanning && !fromPlan)) return;
-      const button = document.getElementById('generate-picture');
+    async function generateSinglePicture({ prompt, key, body, postId, onCost }) {
       const status = document.getElementById('picture-generation-status');
-      const prompt = document.getElementById('picture-prompt').value.trim();
-      const key = settings.aiKey.trim();
-      status.classList.remove('is-error');
-      if (!key) { status.textContent = '生圖要用第一組 OpenRouter 的金鑰（Gemini 的免費金鑰不能生圖）。先用 📤 上傳。'; status.classList.add('is-error'); return; }
-      if (!prompt) { status.textContent = '先填「圖片描述（要畫什麼）」。'; status.classList.add('is-error'); return; }
-      const postId = currentPostId;
-      const model = settings.customImageModel.trim() || settings.imageModel || IMAGE_MODELS[0];
-      const body = { model, prompt: prompt + promptSuffix, aspect_ratio: pictureAspectRatio(activePlatform), resolution: '1K', n: 1 };
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
-      imageGenerating = true; updatePictureGenerationButtons(); status.textContent = '畫圖中，請稍候…';
       try {
         let response;
         try { response = await fetch('https://openrouter.ai/api/v1/images', { method: 'POST', signal: controller.signal, headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
@@ -1434,7 +1426,43 @@
         status.classList.toggle('is-error', pictureStorageFailed);
         return true;
       } catch (error) { status.textContent = controller.signal.aborted ? '等太久' : error.message; status.classList.add('is-error'); }
-      finally { clearTimeout(timeout); imageGenerating = false; updatePictureGenerationButtons(); renderAIUsage(); }
+      finally { clearTimeout(timeout); }
+    }
+    async function generatePicture({ fromPlan = false, promptSuffix = '', onCost = () => {} } = {}) {
+      if (imageGenerating || (imagePlanning && !fromPlan)) return;
+      const status = document.getElementById('picture-generation-status');
+      const prompt = document.getElementById('picture-prompt').value.trim(), key = settings.aiKey.trim();
+      status.classList.remove('is-error');
+      if (!key) { status.textContent = '生圖要用第一組 OpenRouter 的金鑰（Gemini 的免費金鑰不能生圖）。先用 📤 上傳。'; status.classList.add('is-error'); return; }
+      if (!prompt) { status.textContent = '先填「圖片描述（要畫什麼）」。'; status.classList.add('is-error'); return; }
+      // 想圖再畫維持原本一張；只有直接按「🎨 生圖」使用張數選單。
+      const selectedCount = Number(document.getElementById('picture-count').value);
+      const count = fromPlan ? 1 : [1, 2, 3].includes(selectedCount) ? selectedCount : 1;
+      const postId = currentPostId;
+      const model = settings.customImageModel.trim() || settings.imageModel || IMAGE_MODELS[0];
+      const body = { model, prompt: prompt + promptSuffix, aspect_ratio: pictureAspectRatio(activePlatform), resolution: '1K', n: 1 };
+      let completed = 0, attempts = 0, responses = 0, totalCost = 0, unpriced = 0;
+      imageGenerating = true; updatePictureGenerationButtons();
+      try {
+        for (let index = 0; index < count; index++) {
+          if (postId !== currentPostId) { status.textContent = '已切換文章，停止繼續生圖；前面完成的圖片已保留。'; break; }
+          status.textContent = `正在畫第 ${index + 1}／${count} 張…`;
+          attempts++;
+          const success = await generateSinglePicture({ prompt, key, body, postId, onCost: cost => {
+            responses++;
+            if (cost === null) unpriced++; else totalCost += cost;
+            onCost(cost);
+          } });
+          if (!success) break;
+          completed++;
+          if (pictureStorageFailed) break;
+        }
+        if (count > 1 && completed === count && !pictureStorageFailed) status.textContent = `已加入 ${completed} 張圖片，最後一張已設為主圖並自動暫存。`;
+        const progress = count > 1 && completed !== count ? ` 已完成 ${completed}／${count} 張。` : '';
+        const costText = responses > unpriced ? ` 這一批共約 $${formatAICost(totalCost)}${unpriced || attempts > responses ? '（另有費用未回報）' : ''}。` : ' 這一批費用尚未回報。';
+        status.append(document.createTextNode(progress + costText));
+        return completed === count;
+      } finally { imageGenerating = false; updatePictureGenerationButtons(); renderAIUsage(); }
     }
     document.getElementById('generate-picture').addEventListener('click', () => generatePicture());
     function buildPicturePlanMessages() {
