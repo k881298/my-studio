@@ -31,6 +31,9 @@
       --image-white-backdrop: #ffffffd9;
       --image-black-backdrop: #000000b3;
       --image-letter-shadow: #00000099;
+      --menu-shade: #00000099;
+      --menu-grid: #8a714866;
+      --menu-light-grid: #ffffff66;
     }
     .ai-helper { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
     .ai-helper h3 { margin: 0 0 10px; font-size: 16px; }
@@ -86,6 +89,21 @@
     .line-messages { min-width: 0; flex: 1; }
     .line-bubble { margin-bottom: 8px; border-radius: 12px; overflow: hidden; background: var(--white); }
     .line-bubble .post-text { padding: 12px; }
+    #rich-menu-dialog { width: min(1000px, calc(100% - 24px)); overflow-y: auto; }
+    .rich-menu-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
+    .rich-menu-controls > div:last-child { grid-column: 1 / -1; }
+    .rich-menu-controls label, .rich-menu-cell label { display: block; font-size: 12px; margin: 0 0 5px; }
+    .rich-menu-cell { display: grid; grid-template-columns: 42px 75px minmax(90px, 1fr) 135px minmax(120px, 1.3fr); gap: 9px; align-items: start; border-top: 1px solid var(--line); padding: 14px 0; }
+    .rich-menu-cell-code { padding-top: 25px; color: var(--accent); font-weight: 600; }
+    .rich-menu-cell input, .rich-menu-cell select { min-width: 0; }
+    .rich-menu-cell small { display: block; font-size: 10px; font-weight: 400; }
+    #rich-menu-preview { margin: 15px 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--paper); }
+    #rich-menu-preview canvas, #line-menu-image canvas { display: block; width: 100%; height: auto; }
+    .rich-menu-errors { color: var(--error); white-space: pre-line; font-size: 13px; }
+    .line-rich-preview { flex-shrink: 0; border-top: 1px solid var(--line); background: var(--white); }
+    .line-menu-bar { text-align: center; font-size: 12px; padding: 7px 10px; color: var(--ink); }
+    #line-menu-image { font-size: 11px; color: var(--muted); }
+    @media (max-width: 650px) { .rich-menu-controls { grid-template-columns: 1fr; } .rich-menu-cell { grid-template-columns: 1fr 1fr; } .rich-menu-cell-code, .rich-menu-cell > label:last-child { grid-column: 1 / -1; } .rich-menu-cell-code { padding-top: 0; } }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; font-size: 14px; line-height: 1.7; }
     button, textarea { font: inherit; }
@@ -114,6 +132,7 @@
     textarea::placeholder { color: var(--muted); opacity: 1; }
     textarea:focus { border-color: var(--accent); }
     .field textarea { min-height: 84px; font-size: 12px; }
+    .field input[type="date"] { display: block; width: 100%; min-width: 0; padding: 11px 12px; font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 7px; }
     .editor-panel { display: flex; flex-direction: column; }
     .platform-tabs { display: flex; gap: 4px; padding: 5px; background: var(--soft); border-radius: 8px; margin-bottom: 25px; }
     .platform-tab { flex: 1; padding: 10px 5px; background: var(--clear); border: 1px solid var(--clear); border-radius: 5px; font-size: 13px; color: var(--muted); }
@@ -182,7 +201,9 @@
     .ai-writing-actions { margin-top: 12px; }
     .ai-writing-actions .action-button { width: 100%; }
     .ai-questions { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; margin-top: 10px; }
-    .modal input[type="password"], .modal input[type="text"], .modal select { display: block; width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); font: inherit; }
+    .modal input[type="password"], .modal input[type="text"], .modal input[type="email"], .modal select { display: block; width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); font: inherit; }
+    #open-auth { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+    #auth-status.is-error { color: var(--error); }
     .ai-service-settings { border: 1px solid var(--line); border-radius: 7px; padding: 5px 16px 18px; margin: 22px 0 0; min-width: 0; }
     .ai-service-settings legend { font-weight: 600; padding: 0 7px; }
     .save-status.is-error, .ai-fallback { color: var(--error); white-space: pre-wrap; }
@@ -264,7 +285,7 @@
 <body>
   <header class="topbar">
     <div class="brand-lockup"><img class="brand-mark" src="https://xiujing-paper-art.k881298.chatgpt.site/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
-    <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
+    <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-rich-menu">📋 圖文選單</button><button type="button" class="action-button settings-button" id="open-auth">🔐 登入</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
   </header>
   <div class="intro"><p class="quote">從一幅紙景，開始今天的分享。</p><a class="collection-link" href="https://xiujing-paper-art.k881298.chatgpt.site/works" target="_blank" rel="noopener">作品典藏 ↗</a></div>
   <main class="workspace">
@@ -280,6 +301,7 @@
         <p class="work-status" id="work-status" role="status"></p>
       </div>
       <form id="material-form" aria-label="作品素材卡"></form>
+      <div class="field"><label for="publish-date">🗓 預計發布日<span class="requirement optional">選填</span></label><input type="date" id="publish-date"></div>
       <section class="post-pictures" aria-labelledby="pictures-title">
         <h3 id="pictures-title">🖼 這篇的圖</h3>
         <p class="save-status">可一次選多張，點縮圖選主圖；右上角 × 可移除。</p>
@@ -312,6 +334,7 @@
         </div>
       </section>
       <div class="draft-actions"><button type="button" class="action-button primary-button assemble-button" id="assemble-prompt">🧩 組好指令</button><button type="button" class="action-button" id="open-paste">📥 貼回</button><button type="button" class="action-button" id="save-post">💾 存檔</button></div>
+      <p class="save-status" id="cloud-save-status" role="status"></p>
       <div class="ai-writing-actions"><button type="button" class="action-button primary-button" id="write-with-ai">✨ 讓 AI 寫</button><p class="save-status" id="ai-writing-status" role="status"></p><p class="ai-fallback" id="ai-fallback" role="status" hidden></p><p class="ai-usage" id="ai-usage"></p><details class="ai-raw" id="ai-raw" hidden><summary>查看 AI 回覆原文，可用 📥 貼回手動分配</summary><textarea id="ai-raw-output" readonly aria-label="AI 回覆原文"></textarea></details><div class="ai-questions" id="ai-questions" hidden></div></div>
       <p class="save-status" id="save-status" role="status"></p>
     </section>
@@ -345,6 +368,7 @@
         <div class="phone-screen">
           <div class="phone-top" aria-hidden="true"><div class="notch"></div></div>
           <div class="social-feed" id="social-preview"></div>
+          <section class="line-rich-preview" id="line-rich-preview" aria-label="LINE 圖文選單預覽" hidden><div class="line-menu-bar" id="line-menu-bar"></div><div id="line-menu-image"></div></section>
           <div class="home-indicator" aria-hidden="true"></div>
         </div>
       </div>
@@ -389,7 +413,8 @@
   </dialog>
   <dialog class="modal" id="posts-dialog" aria-labelledby="posts-title">
     <div class="modal-heading"><h2 id="posts-title">我的貼文</h2><button type="button" class="action-button" data-close="posts-dialog">關閉</button></div>
-    <p class="modal-note">貼文保存在目前瀏覽器，存檔時間以臺灣時間顯示。</p>
+    <p class="modal-note">貼文可同步到雲端，存檔時間以臺灣時間顯示。圖片仍保存在這個瀏覽器。</p>
+    <div class="modal-actions"><button type="button" class="action-button" id="upload-all-posts">⬆ 全部上傳到雲端</button><button type="button" class="action-button" id="download-cloud-posts">⬇ 從雲端拿回來</button></div>
     <div id="saved-posts-list"></div>
     <p class="modal-status" id="posts-status" role="status"></p>
   </dialog>
@@ -405,8 +430,38 @@
     <p class="modal-note" id="inspector-note">❌ 紅底為不符合；⚠️ 黃底為需要人工判斷。</p>
     <div id="inspector-report"></div>
   </dialog>
+  <dialog class="modal" id="rich-menu-dialog" aria-labelledby="rich-menu-title">
+    <div class="modal-heading"><h2 id="rich-menu-title">📋 圖文選單</h2><button type="button" class="action-button" data-close="rich-menu-dialog">關閉</button></div>
+    <p class="modal-note">這份選單獨立儲存，所有貼文共用。下載圖片後，照設定表在 LINE 後台設定按鈕。</p>
+    <div class="rich-menu-controls">
+      <div><label for="rich-menu-layout">版型</label><select id="rich-menu-layout"></select></div>
+      <div><label for="rich-menu-background">底色</label><select id="rich-menu-background"><option value="brand">品牌主色</option><option value="white">白色</option><option value="photo">這篇的主圖加深一點</option></select></div>
+      <div><label for="rich-menu-bar">選單列的字（最多 14 字）</label><input type="text" id="rich-menu-bar" value="選單"></div>
+    </div>
+    <div id="rich-menu-cells"></div>
+    <p class="rich-menu-errors" id="rich-menu-errors" role="status"></p>
+    <div id="rich-menu-preview" aria-label="圖文選單圖片預覽"></div>
+    <div class="modal-actions"><button type="button" class="action-button" id="download-rich-menu">⬇ 下載選單圖</button><button type="button" class="action-button" id="copy-rich-menu">📋 複製設定表</button></div>
+    <p class="modal-status" id="rich-menu-status" role="status"></p>
+    <textarea id="rich-menu-table" readonly aria-label="圖文選單設定表" hidden></textarea>
+  </dialog>
+  <dialog class="modal" id="auth-dialog" aria-labelledby="auth-title">
+    <div class="modal-heading"><h2 id="auth-title">🔐 登入</h2><button type="button" class="action-button" data-close="auth-dialog">關閉</button></div>
+    <form id="auth-form" novalidate>
+      <label for="auth-email">Email</label><input type="email" id="auth-email" autocomplete="email" required>
+      <label for="auth-password">密碼（至少 6 個字）</label><input type="password" id="auth-password" autocomplete="current-password" minlength="6" required>
+      <div class="modal-actions"><button type="submit" class="action-button primary-button" id="auth-login">登入</button><button type="button" class="action-button" id="auth-signup">第一次：註冊</button><button type="button" class="action-button" id="auth-logout">登出</button></div>
+    </form>
+    <p class="modal-status" id="auth-status" role="status"></p>
+  </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ===== 可自行修改的品牌、平台與素材卡欄位 =====
+    // 這兩個可以公開，守門的是 Supabase 的 RLS；sb_secret_ 開頭的絕對不要貼。
+    const SB_URL = 'https://hyhbrpoxxstpwuewmehh.supabase.co';
+    const SB_KEY = 'sb_publishable_okhWZst1WWZl2jIK1dXvDw_nWD_ZB2A';
+    let sb = null;
+    let me = null;
     const BRAND_NAME = '秀境紙藝';
     const ACCOUNT_NAME = 'xiujing0905'; // 來自品牌網站的 Instagram／Threads 帳號。
     const PLATFORMS = ['Instagram', 'Facebook', 'Threads', 'LINE'];
@@ -419,6 +474,15 @@
       { id: 'line-avatar', name: 'LINE 大頭貼', width: 640, height: 640 },
       { id: 'line-broadcast', name: 'LINE 群發圖', width: 1040, height: 1040 }
     ];
+    const MENUS = [
+      { id: 'large-6', name: '大型 6 格（上 3 下 3）', w: 2500, h: 1686, cols: 3, rows: 2 },
+      { id: 'large-4', name: '大型 4 格（上 2 下 2）', w: 2500, h: 1686, cols: 2, rows: 2 },
+      { id: 'large-1', name: '大型 1 格', w: 2500, h: 1686, cols: 1, rows: 1 },
+      { id: 'small-3', name: '小型 3 格（左中右）', w: 2500, h: 843, cols: 3, rows: 1 },
+      { id: 'small-2', name: '小型 2 格（左右）', w: 2500, h: 843, cols: 2, rows: 1 },
+      { id: 'small-1', name: '小型 1 格', w: 2500, h: 843, cols: 1, rows: 1 }
+    ];
+    const RICH_MENU_KEY = 'xiujing-rich-menu-v1';
     const AI_MODEL = 'deepseek/deepseek-v4.1-flash';
     const OPENROUTER_MODEL_GROUPS = {
       DeepSeek: ['deepseek/deepseek-v4.1-flash', 'deepseek/deepseek-v4-pro', 'deepseek/deepseek-v3.2'],
@@ -555,6 +619,10 @@
     let mainPictureId = null;
     let pictureStorageFailed = false;
     let pictureUploading = false;
+    let menuStorageMessage = '';
+    let richMenu = loadRichMenu();
+    let menuEditorVersion = 0;
+    let menuPhoneVersion = 0;
     let imageDBPromise = null;
     let storageUsageVersion = 0;
     let pictureRestoreVersion = 0;
@@ -623,10 +691,12 @@
     async function deletePictureIfUnused(id) {
       try {
         await imageWarehouseRequest('readwrite', store => {
-          if (postPictures.some(picture => picture.id === id) || referencedPictureIds(postStore).has(id)) return;
+          if (postPictures.some(picture => picture.id === id) || referencedPictureIds(postStore).has(id) || richMenu.backgroundPictureId === id) return;
           // 同一網站其他分頁可能剛存檔；讀取最新抽屜後才決定是否刪除。
           const saved = JSON.parse(localStorage.getItem(POSTS_KEY) || 'null');
           if (saved && (!Array.isArray(saved.entries) || referencedPictureIds(saved).has(id))) return;
+          const menu = JSON.parse(localStorage.getItem(RICH_MENU_KEY) || 'null');
+          if (menu?.backgroundPictureId === id) return;
           return store.delete(id);
         });
       } catch (error) {
@@ -1007,6 +1077,7 @@
       preview.scrollTop = 0;
       document.querySelector('.phone').setAttribute('aria-label', `${activePlatform} 手機貼文預覽`);
       refreshLetteredPreview();
+      refreshLineMenuPreview();
     }
     function updatePreviewContent() {
       updateCharacterCount();
@@ -1860,6 +1931,110 @@
     let postStore = { entries: [], draft: null };
     let postStoreReady = false;
     let currentPostId = makePostId();
+    let cloudSaveBusy = false;
+    let cloudStatusVersion = 0;
+    let cloudLibraryBusy = false;
+    let cloudPostIds = new Set();
+    const autoDownloadedUsers = new Set();
+    let postStoreInitialization;
+    function savedOrder(record) {
+      if (record.savedAt !== undefined && record.savedAt !== null && record.savedAt !== '') {
+        const value = typeof record.savedAt === 'number' ? record.savedAt : new Date(record.savedAt).getTime();
+        if (Number.isFinite(value)) return value;
+      }
+      return Number(record.id) || 0;
+    }
+    function sortedSavedPosts(entries) {
+      return [...entries].sort((a, b) => savedOrder(b) - savedOrder(a) || String(b.id).localeCompare(String(a.id)));
+    }
+    function setPostsStatus(message, error = false) {
+      postsStatus.textContent = message; postsStatus.classList.toggle('is-error', error);
+    }
+    function renderCloudControls() {
+      const busy = cloudLibraryBusy || cloudSaveBusy;
+      document.getElementById('upload-all-posts').disabled = busy;
+      document.getElementById('download-cloud-posts').disabled = busy;
+      document.getElementById('save-post').disabled = busy;
+      document.getElementById('auth-logout').disabled = !sb || !me || authBusy || busy;
+    }
+    function requireCloudUser() {
+      if (!sb || !me) { setPostsStatus('先 🔐 登入', true); return null; }
+      return { client: sb, userId: me.id };
+    }
+    function assertCloudUser(userId) {
+      if (me?.id !== userId) throw new Error('登入帳號已變更，請重新操作。');
+    }
+    async function uploadCloudRecord(client, userId, record) {
+      assertCloudUser(userId);
+      const { error } = await client.from('posts').upsert({ id: String(record.id), user_id: userId, data: record, publish_date: record.publishDate || null, updated_at: new Date().toISOString() }, { onConflict: 'user_id,id' });
+      if (error) throw error;
+      assertCloudUser(userId);
+      cloudPostIds.add(String(record.id));
+    }
+    async function downloadCloudPosts() {
+      const context = requireCloudUser();
+      if (!context || cloudLibraryBusy || cloudSaveBusy) return;
+      const { client, userId } = context;
+      cloudLibraryBusy = true; renderCloudControls(); setPostsStatus('正在從雲端拿回來…');
+      try {
+        const rows = [];
+        // 分頁拿取，避免雲端預設最多 1000 筆而遺漏較多的存檔。
+        for (let offset = 0; ; offset += 1000) {
+          const { data, error } = await client.from('posts').select('data, updated_at').eq('user_id', userId).order('id').range(offset, offset + 999);
+          if (error) throw error;
+          assertCloudUser(userId);
+          rows.push(...(data || []));
+          if (!data || data.length < 1000) break;
+        }
+        const records = [];
+        for (const row of rows) {
+          if (!row.data || typeof row.data !== 'object' || row.data.id == null) throw new Error('雲端有一篇存檔格式不完整，請確認 data 內容。');
+          records.push(await migratePictureRecord({ ...row.data, id: String(row.data.id) }));
+        }
+        assertCloudUser(userId);
+        const merged = new Map(postStore.entries.map(record => [String(record.id), record]));
+        let added = 0, updated = 0;
+        for (const record of records) {
+          const local = merged.get(record.id);
+          if (!local) { merged.set(record.id, record); added++; }
+          else if (savedOrder(record) > savedOrder(local)) { merged.set(record.id, record); updated++; }
+        }
+        if (!persistPostStore({ ...postStore, entries: sortedSavedPosts([...merged.values()]) })) throw new Error('這台電腦存不下，原存檔仍保留。');
+        cloudPostIds = new Set(records.map(record => record.id));
+        setPostsStatus(`拿回來了：新增 ${added} 篇、更新 ${updated} 篇`);
+      } catch (error) { setPostsStatus(cloudOperationError(error), true); }
+      finally { cloudLibraryBusy = false; renderCloudControls(); renderSavedPosts(); }
+    }
+    async function uploadAllPosts() {
+      const context = requireCloudUser();
+      if (!context || cloudLibraryBusy || cloudSaveBusy) return;
+      cloudLibraryBusy = true; renderCloudControls();
+      const entries = [...postStore.entries]; let count = 0;
+      try {
+        for (const record of entries) {
+          setPostsStatus(`正在上傳：第 ${count + 1}／${entries.length} 篇…`);
+          await uploadCloudRecord(context.client, context.userId, record); count++;
+        }
+        setPostsStatus(`上傳好了：${count} 篇`);
+      } catch (error) { setPostsStatus(`第 ${count + 1} 篇上傳失敗：${cloudOperationError(error)}`, true); }
+      finally { cloudLibraryBusy = false; renderCloudControls(); renderSavedPosts(); }
+    }
+    function cloudOperationError(error) {
+      if (/登入帳號已變更|格式不完整|存不下/.test(error?.message || '')) return error.message;
+      return cloudSaveErrorMessage(error);
+    }
+    function scheduleAutoDownload() {
+      const userId = me?.id;
+      if (!userId || autoDownloadedUsers.has(userId)) return;
+      autoDownloadedUsers.add(userId);
+      // 離開登入事件回呼才呼叫資料庫，避免卡住 SDK 的登入鎖。
+      setTimeout(async () => {
+        await postStoreInitialization;
+        if (me?.id === userId && postStoreReady) await downloadCloudPosts();
+      }, 0);
+    }
+    document.getElementById('upload-all-posts').addEventListener('click', uploadAllPosts);
+    document.getElementById('download-cloud-posts').addEventListener('click', downloadCloudPosts);
     function makePostId() {
       return typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `post-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
@@ -1867,6 +2042,7 @@
       posts.set(activePlatform, postInput.value);
       return {
         id: currentPostId,
+        publishDate: document.getElementById('publish-date').value,
         material: Object.fromEntries(MATERIAL_FIELDS.map(field => [field.id, document.getElementById(`material-field-${field.id}`).value])),
         posts: Object.fromEntries(posts),
         activePlatform,
@@ -1904,6 +2080,9 @@
       if (persistPostStore({ ...postStore, draft })) saveStatus.textContent = '已自動暫存於此瀏覽器。';
     }
     async function restorePost(record) {
+      cloudStatusVersion++;
+      document.getElementById('cloud-save-status').textContent = '';
+      document.getElementById('publish-date').value = typeof record.publishDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(record.publishDate) ? record.publishDate : '';
       const version = ++pictureRestoreVersion;
       const lettering = record.pictureText || {};
       pictureText = {
@@ -1977,7 +2156,7 @@
         savedPostsList.append(empty);
         return;
       }
-      [...postStore.entries].sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || '')).forEach(record => {
+      sortedSavedPosts(postStore.entries).forEach(record => {
         const row = document.createElement('div');
         row.className = 'saved-post';
         const info = document.createElement('div');
@@ -1985,9 +2164,15 @@
         const name = document.createElement('p');
         name.className = 'saved-post-name';
         name.textContent = record.name || '未命名貼文';
+        if (me) {
+          const badge = document.createElement('small');
+          badge.className = 'saved-post-time'; badge.style.marginLeft = '8px';
+          badge.textContent = cloudPostIds.has(String(record.id)) ? '☁ 雲端有' : '只在這台';
+          name.append(badge);
+        }
         const time = document.createElement('p');
         time.className = 'saved-post-time';
-        time.textContent = `存檔時間：${displaySavedTime(record.savedAt)}`;
+        time.textContent = `存檔時間：${displaySavedTime(record.savedAt)}${record.publishDate ? `｜🗓 ${record.publishDate}` : ''}`;
         info.append(name, time);
         const actions = document.createElement('div');
         actions.className = 'saved-post-actions';
@@ -2004,8 +2189,23 @@
         remove.type = 'button';
         remove.className = 'action-button';
         remove.textContent = '刪除';
-        remove.addEventListener('click', () => {
-          if (!window.confirm('確定嗎？')) return;
+        remove.disabled = cloudLibraryBusy || cloudSaveBusy;
+        remove.addEventListener('click', async () => {
+          if (cloudLibraryBusy || cloudSaveBusy) return;
+          if (!window.confirm(me ? '確定嗎？雲端的也會一起刪。' : '確定嗎？')) return;
+          if (sb && me) {
+            const userId = me.id;
+            cloudLibraryBusy = true; renderCloudControls(); remove.disabled = true;
+            try {
+              const { error } = await sb.from('posts').delete().eq('id', String(record.id)).eq('user_id', userId);
+              if (error) throw error;
+              assertCloudUser(userId); cloudPostIds.delete(String(record.id));
+            } catch (error) {
+              setPostsStatus(`刪除失敗：${cloudOperationError(error)} 這台的存檔仍保留。`, true);
+              cloudLibraryBusy = false; renderCloudControls(); renderSavedPosts(); return;
+            }
+            cloudLibraryBusy = false; renderCloudControls();
+          }
           const entries = postStore.entries.filter(entry => entry.id !== record.id);
           // 刪除目前開啟的存檔後，編輯中的文字仍保留為一份新草稿。
           const nextId = currentPostId === record.id ? makePostId() : currentPostId;
@@ -2013,26 +2213,51 @@
           if (persistPostStore({ entries, draft })) {
             currentPostId = nextId;
             renderSavedPosts();
-            postsStatus.textContent = '已刪除存檔。';
+            setPostsStatus('已刪除存檔。');
             saveStatus.textContent = '目前編寫內容已暫存。';
-          } else postsStatus.textContent = '刪除失敗，原存檔仍保留，請確認瀏覽器儲存空間與權限。';
+          } else setPostsStatus('這台的存檔刪除失敗，請確認瀏覽器儲存空間與權限。', true);
         });
         actions.append(open, remove);
         row.append(info, actions);
         savedPostsList.append(row);
       });
     }
-    document.getElementById('save-post').addEventListener('click', () => {
+    function cloudSaveErrorMessage(error) {
+      const code = String(error?.code || ''), message = String(error?.message || error || '');
+      if (['42P01', 'PGRST205'].includes(code)) return '雲端還沒有 posts 表，到 SQL Editor 貼那段按 Run。';
+      if (code === '42501' || /row[- ]level security/i.test(message)) return '雲端不讓你存，SQL 的權限那段沒跑到。';
+      if (code === 'PGRST204') return '雲端 posts 表的欄位不符，請確認建立表格的 SQL 已完整執行。';
+      if (code === '42P10') return 'posts 表缺少 user_id、id 的唯一設定，請確認建立表格的 SQL 已完整執行。';
+      if (/fetch|network|timeout|連線/i.test(message)) return '連不到雲端，請檢查網路後再存一次。';
+      if (error?.status === 401 || /jwt|invalid api key|unauthorized/i.test(message)) return '雲端登入或連線資料有問題，請重新登入並確認 SB_URL、SB_KEY。';
+      return `雲端暫時無法存檔${/^[A-Z0-9_]{1,20}$/.test(code) ? `（錯誤代碼：${code}）` : ''}，請稍後再試。`;
+    }
+    document.getElementById('save-post').addEventListener('click', async () => {
+      if (cloudSaveBusy || cloudLibraryBusy) return;
+      const cloudStatus = document.getElementById('cloud-save-status'), version = ++cloudStatusVersion;
+      cloudStatus.classList.remove('is-error'); cloudStatus.textContent = '';
       const snapshot = capturePost();
       const now = new Date();
       const title = snapshot.material[MATERIAL_FIELDS[0].id].trim() || '未命名貼文';
-      const record = { ...snapshot, name: `${taipeiDate(now)}｜${title}`, savedAt: now.toISOString() };
+      const record = { ...snapshot, name: `${taipeiDate(now)}｜${title}`, savedAt: Date.now() };
       const entries = postStore.entries.filter(entry => entry.id !== currentPostId);
       entries.push(record);
-      if (persistPostStore({ entries, draft: { ...snapshot, updatedAt: record.savedAt } })) saveStatus.textContent = `已存檔：${record.name}（${displaySavedTime(record.savedAt)}）`;
+      if (!persistPostStore({ entries, draft: { ...snapshot, updatedAt: now.toISOString() } })) {
+        cloudStatus.textContent = '這台電腦尚未存成功，請先處理本機儲存問題，再存雲端。'; cloudStatus.classList.add('is-error'); return;
+      }
+      saveStatus.textContent = `已存檔：${record.name}（${displaySavedTime(record.savedAt)}）`;
+      if (!sb || !me) { cloudStatus.textContent = '只存在這台電腦。🔐 登入後，會同時存到雲端。'; return; }
+      const client = sb, userId = me.id, button = document.getElementById('save-post');
+      cloudSaveBusy = true; renderCloudControls(); cloudStatus.textContent = `這台電腦已存好，正在存雲端：（${record.name}）`;
+      try {
+        await uploadCloudRecord(client, userId, record);
+        if (version === cloudStatusVersion) cloudStatus.textContent = `☁ 雲端也存了：（${record.name}）`;
+      } catch (error) {
+        if (version === cloudStatusVersion) { cloudStatus.textContent = `${cloudSaveErrorMessage(error)} 這台電腦有存到，不會不見。`; cloudStatus.classList.add('is-error'); }
+      } finally { cloudSaveBusy = false; renderCloudControls(); renderSavedPosts(); }
     });
     document.getElementById('open-posts').addEventListener('click', () => {
-      postsStatus.textContent = '';
+      setPostsStatus('');
       renderSavedPosts();
       postsDialog.showModal();
     });
@@ -2043,10 +2268,319 @@
     });
     // 直接於每次變更時暫存，重新整理前不用等待計時器。
     form.addEventListener('input', autoSaveDraft);
+    document.getElementById('publish-date').addEventListener('input', autoSaveDraft);
     postInput.addEventListener('input', autoSaveDraft);
     tabs.addEventListener('click', autoSaveDraft);
     workSelect.addEventListener('change', autoSaveDraft);
     document.getElementById('use-work').addEventListener('click', autoSaveDraft);
+    // ===== LINE 圖文選單；整個工作台共用，不寫入個別貼文 =====
+    function menuText(value, limit) { return pictureGraphemes(typeof value === 'string' ? value : '').slice(0, limit).join(''); }
+    function defaultRichMenu() {
+      const examples = [['🖼', '欣賞作品'], ['✂️', '紙雕故事'], ['💬', '作品詢問'], ['🎁', '心意禮物'], ['🌿', '創作日常'], ['🔎', '收藏資訊']];
+      return { layoutId: MENUS[0].id, background: 'brand', backgroundPictureId: null, barText: '選單', cells: Array.from({ length: Math.max(...MENUS.map(menu => menu.cols * menu.rows)) }, (_, index) => ({ icon: examples[index]?.[0] || '', text: examples[index]?.[1] || `按鈕 ${index + 1}`, action: 'message', content: '' })) };
+    }
+    function loadRichMenu() {
+      const fallback = defaultRichMenu();
+      try {
+        const saved = JSON.parse(localStorage.getItem(RICH_MENU_KEY) || 'null');
+        if (!saved || typeof saved !== 'object') return fallback;
+        return {
+          layoutId: MENUS.some(menu => menu.id === saved.layoutId) ? saved.layoutId : fallback.layoutId,
+          background: ['brand', 'white', 'photo'].includes(saved.background) ? saved.background : 'brand',
+          backgroundPictureId: saved.background === 'photo' && typeof saved.backgroundPictureId === 'string' ? saved.backgroundPictureId : null,
+          barText: menuText(saved.barText ?? '選單', 14),
+          cells: fallback.cells.map((cell, index) => {
+            const value = Array.isArray(saved.cells) ? saved.cells[index] : null;
+            return value && typeof value === 'object' ? { icon: menuText(value.icon, 1), text: menuText(value.text, 12), action: ['message', 'url', 'none'].includes(value.action) ? value.action : 'message', content: typeof value.content === 'string' ? value.content : '' } : cell;
+          })
+        };
+      } catch { menuStorageMessage = '無法讀取原有圖文選單，請確認瀏覽器允許儲存資料。'; return fallback; }
+    }
+    function richMenuLayout(config = richMenu) { return MENUS.find(menu => menu.id === config.layoutId) || MENUS[0]; }
+    function menuCellPosition(index, layout) {
+      if (layout.cols === 1 && layout.rows === 1) return '整張';
+      const col = index % layout.cols, row = Math.floor(index / layout.cols);
+      const horizontal = layout.cols === 3 ? ['左', '中', '右'][col] : layout.cols === 2 ? ['左', '右'][col] : '';
+      return horizontal + (layout.rows === 1 ? '' : row === 0 ? '上' : '下');
+    }
+    function richMenuErrors(config = richMenu) {
+      const layout = richMenuLayout(config), cells = config.cells.slice(0, layout.cols * layout.rows), errors = [];
+      if (cells.every(cell => cell.action === 'none')) errors.push('每一格都是「不設定」：至少要有一格設定動作。');
+      cells.forEach((cell, index) => {
+        const code = String.fromCharCode(65 + index);
+        if (!cell.text.trim() && !cell.icon.trim()) errors.push(`${code} 格沒有字也沒有圖示，請至少填一個。`);
+        if (cell.action === 'url') {
+          let valid = false;
+          try { const url = new URL(cell.content.trim()); valid = /^https:\/\//i.test(cell.content.trim()) && url.protocol === 'https:' && Boolean(url.hostname); } catch { /* 由下方顯示明確提醒 */ }
+          if (!valid) errors.push(`${code} 格選了「開網址」，請填入 https:// 開頭的完整網址。`);
+        }
+      });
+      if (config.background === 'photo' && !config.backgroundPictureId) errors.push('先在「這篇的圖」加入主圖，再選照片底色。');
+      return errors;
+    }
+    function saveRichMenu() {
+      try { localStorage.setItem(RICH_MENU_KEY, JSON.stringify(richMenu)); menuStorageMessage = ''; updateStorageUsage(); return true; }
+      catch { menuStorageMessage = '圖文選單尚未存到瀏覽器，請確認儲存空間與權限。'; return false; }
+    }
+    async function drawRichMenu(config, width = null) {
+      const layout = richMenuLayout(config), scale = width ? width / layout.w : 1;
+      const canvas = document.createElement('canvas'); canvas.width = Math.round(layout.w * scale); canvas.height = Math.round(layout.h * scale);
+      const context = canvas.getContext('2d'); if (!context) throw new Error('瀏覽器無法繪製選單。');
+      if (document.fonts) await document.fonts.ready;
+      const colors = getComputedStyle(document.documentElement), color = key => colors.getPropertyValue(key).trim();
+      const brand = color('--brand'), background = config.background === 'white' ? color('--white') : brand;
+      const hex = brand.replace('#', ''), rgb = /^[\da-f]{6}$/i.test(hex) ? [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16)) : [240, 239, 193];
+      const dark = config.background === 'photo' || config.background === 'brand' && rgb[0] * .299 + rgb[1] * .587 + rgb[2] * .114 < 145;
+      context.fillStyle = background; context.fillRect(0, 0, canvas.width, canvas.height);
+      if (config.background === 'photo') {
+        if (!config.backgroundPictureId) throw new Error('請先加入主圖，再選照片底色。');
+        const current = postPictures.find(picture => picture.id === config.backgroundPictureId);
+        const source = current?.src || await getStoredPicture(config.backgroundPictureId);
+        if (!isPictureDataURL(source)) throw new Error('選單底圖暫時無法讀取，請重新選一次主圖底色。');
+        const image = await loadPictureForCanvas(source);
+        const cover = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+        const w = canvas.width / cover, h = canvas.height / cover;
+        context.drawImage(image, (image.naturalWidth - w) / 2, (image.naturalHeight - h) / 2, w, h, 0, 0, canvas.width, canvas.height);
+        context.fillStyle = color('--menu-shade'); context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      const cellWidth = canvas.width / layout.cols, cellHeight = canvas.height / layout.rows;
+      context.strokeStyle = color(dark ? '--menu-light-grid' : '--menu-grid'); context.lineWidth = Math.max(1, canvas.width / 1250); context.beginPath();
+      for (let col = 1; col < layout.cols; col++) { context.moveTo(col * cellWidth, 0); context.lineTo(col * cellWidth, canvas.height); }
+      for (let row = 1; row < layout.rows; row++) { context.moveTo(0, row * cellHeight); context.lineTo(canvas.width, row * cellHeight); }
+      context.stroke(); context.textAlign = 'center'; context.textBaseline = 'middle';
+      const family = getComputedStyle(document.body).fontFamily;
+      const iconSize = Math.min(cellWidth * .25, cellHeight * .34), fontSize = Math.min(cellWidth * .10, cellHeight * .18), lineHeight = fontSize * 1.25;
+      config.cells.slice(0, layout.cols * layout.rows).forEach((cell, index) => {
+        const x = (index % layout.cols + .5) * cellWidth, y = Math.floor(index / layout.cols) * cellHeight;
+        context.font = `700 ${fontSize}px ${family}`;
+        const wrapped = cell.text.trim() ? wrapPictureText(context, cell.text, cellWidth * .84) : [];
+        const lines = wrapped.slice(0, 2);
+        if (wrapped.length > 2) {
+          const chars = pictureGraphemes(lines[1]);
+          while (chars.length && context.measureText(chars.join('') + '…').width > cellWidth * .84) chars.pop();
+          lines[1] = chars.join('') + '…';
+        }
+        const gap = cell.icon && lines.length ? fontSize * .4 : 0;
+        const contentHeight = (cell.icon ? iconSize : 0) + gap + lines.length * lineHeight;
+        let top = y + (cellHeight - contentHeight) / 2;
+        context.fillStyle = config.background === 'white' ? brand : color(dark ? '--white' : '--ink');
+        if (cell.icon) { context.font = `700 ${iconSize}px ${family}`; context.fillText(cell.icon, x, top + iconSize / 2); top += iconSize + gap; }
+        context.font = `700 ${fontSize}px ${family}`;
+        lines.forEach((line, lineIndex) => context.fillText(line, x, top + lineHeight * (lineIndex + .5)));
+      });
+      canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `${BRAND_NAME}圖文選單，${layout.name}`);
+      return canvas;
+    }
+    async function refreshLineMenuPreview() {
+      const version = ++menuPhoneVersion, area = document.getElementById('line-rich-preview');
+      area.hidden = activePlatform !== 'LINE'; if (area.hidden) return;
+      const config = JSON.parse(JSON.stringify(richMenu));
+      document.getElementById('line-menu-bar').textContent = `${config.barText || '選單'} ▾`;
+      try {
+        const canvas = await drawRichMenu(config, 480);
+        if (version === menuPhoneVersion && activePlatform === 'LINE') document.getElementById('line-menu-image').replaceChildren(canvas);
+      } catch (error) { if (version === menuPhoneVersion) document.getElementById('line-menu-image').textContent = error.message; }
+    }
+    async function refreshRichMenuEditor() {
+      const version = ++menuEditorVersion, config = JSON.parse(JSON.stringify(richMenu));
+      document.getElementById('rich-menu-errors').textContent = richMenuErrors(config).join('\n');
+      if (document.getElementById('rich-menu-dialog').open) {
+        try {
+          const canvas = await drawRichMenu(config, 800);
+          if (version === menuEditorVersion) document.getElementById('rich-menu-preview').replaceChildren(canvas);
+        } catch (error) {
+          if (version === menuEditorVersion) { document.getElementById('rich-menu-preview').textContent = error.message; document.getElementById('rich-menu-errors').textContent = [...richMenuErrors(config), error.message].join('\n'); }
+        }
+      }
+      refreshLineMenuPreview();
+    }
+    function richMenuChanged() {
+      const saved = saveRichMenu(), status = document.getElementById('rich-menu-status');
+      status.textContent = saved ? '已自動儲存圖文選單。' : menuStorageMessage; status.classList.toggle('is-error', !saved);
+      refreshRichMenuEditor();
+    }
+    function renderRichMenuCells() {
+      const box = document.getElementById('rich-menu-cells'), layout = richMenuLayout(); box.replaceChildren();
+      richMenu.cells.slice(0, layout.cols * layout.rows).forEach((cell, index) => {
+        const row = document.createElement('div'); row.className = 'rich-menu-cell';
+        const code = document.createElement('div'); code.className = 'rich-menu-cell-code'; code.textContent = String.fromCharCode(65 + index);
+        const position = document.createElement('small'); position.textContent = menuCellPosition(index, layout); code.append(position); row.append(code);
+        const controls = {};
+        for (const [field, title] of [['icon', '圖示'], ['text', '格子上的字'], ['action', '按了做什麼'], ['content', '內容']]) {
+          const label = document.createElement('label'); label.textContent = title;
+          const input = document.createElement(field === 'action' ? 'select' : 'input'); input.id = `rich-cell-${index}-${field}`; label.htmlFor = input.id;
+          if (field === 'action') [['message', '送出文字'], ['url', '開網址'], ['none', '不設定']].forEach(([value, text]) => { const option = document.createElement('option'); option.value = value; option.textContent = text; input.append(option); });
+          else input.type = 'text';
+          input.value = cell[field]; controls[field] = input; label.append(input); row.append(label);
+          input.addEventListener(field === 'action' ? 'change' : 'input', () => {
+            const limit = field === 'icon' ? 1 : field === 'text' ? 12 : null;
+            if (limit) input.value = menuText(input.value, limit);
+            richMenu.cells[index][field] = input.value;
+            controls.content.disabled = controls.action.value === 'none';
+            controls.content.placeholder = controls.action.value === 'url' ? 'https:// 開頭的網址' : '留空就送出格子上的字';
+            richMenuChanged();
+          });
+        }
+        controls.icon.placeholder = '可留空'; controls.text.placeholder = '最多 12 字';
+        controls.content.disabled = cell.action === 'none'; controls.content.placeholder = cell.action === 'url' ? 'https:// 開頭的網址' : '留空就送出格子上的字';
+        box.append(row);
+      });
+    }
+    function richMenuSettingsTable(config = richMenu) {
+      const layout = richMenuLayout(config);
+      const lines = [`${BRAND_NAME}｜LINE 圖文選單設定表`, `版型：${layout.name}，${layout.w}×${layout.h}`, `選單列的字：${config.barText || '選單'}`];
+      config.cells.slice(0, layout.cols * layout.rows).forEach((cell, index) => {
+        const action = cell.action === 'url' ? `網址「${cell.content.trim()}」` : cell.action === 'none' ? '不設定' : `文字「${cell.content.trim() || cell.text}」`;
+        lines.push(`${String.fromCharCode(65 + index)}（${menuCellPosition(index, layout)}）${cell.icon}${cell.icon ? ' ' : ''}${cell.text} → ${action}`);
+      });
+      return lines.join('\n');
+    }
+    async function richMenuJPEG(canvas) {
+      for (const quality of [.92, .85, .78, .7, .6, .5]) {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+        if (!blob) throw new Error('無法產生 JPEG 圖片，請再試一次。');
+        if (blob.size <= 1000000) return blob;
+      }
+      throw new Error('圖片仍超過 1 MB，請改用品牌主色或白色底，再下載一次。');
+    }
+    const richMenuDialog = document.getElementById('rich-menu-dialog');
+    const menuLayoutInput = document.getElementById('rich-menu-layout'), menuBackgroundInput = document.getElementById('rich-menu-background'), menuBarInput = document.getElementById('rich-menu-bar');
+    MENUS.forEach(menu => { const option = document.createElement('option'); option.value = menu.id; option.textContent = `${menu.name} ${menu.w}×${menu.h}`; menuLayoutInput.append(option); });
+    document.getElementById('open-rich-menu').addEventListener('click', () => {
+      menuLayoutInput.value = richMenu.layoutId; menuBackgroundInput.value = richMenu.background; menuBarInput.value = richMenu.barText;
+      document.getElementById('rich-menu-status').textContent = menuStorageMessage; document.getElementById('rich-menu-status').classList.toggle('is-error', Boolean(menuStorageMessage));
+      document.getElementById('rich-menu-table').hidden = true; renderRichMenuCells(); richMenuDialog.showModal(); refreshRichMenuEditor();
+    });
+    menuLayoutInput.addEventListener('change', () => { richMenu.layoutId = menuLayoutInput.value; renderRichMenuCells(); richMenuChanged(); });
+    menuBarInput.addEventListener('input', () => { menuBarInput.value = menuText(menuBarInput.value, 14); richMenu.barText = menuBarInput.value; richMenuChanged(); });
+    menuBackgroundInput.addEventListener('change', () => {
+      const previous = richMenu.backgroundPictureId;
+      richMenu.background = menuBackgroundInput.value;
+      richMenu.backgroundPictureId = richMenu.background === 'photo' ? mainPostPicture()?.id || null : null;
+      richMenuChanged();
+      if (!menuStorageMessage && previous && previous !== richMenu.backgroundPictureId) deletePictureIfUnused(previous);
+    });
+    document.getElementById('download-rich-menu').addEventListener('click', async () => {
+      const config = JSON.parse(JSON.stringify(richMenu)), status = document.getElementById('rich-menu-status'), button = document.getElementById('download-rich-menu');
+      const errors = richMenuErrors(config); if (errors.length) { status.textContent = '請先修正上面的紅字提醒，再下載。'; status.classList.add('is-error'); return; }
+      button.disabled = true; status.classList.remove('is-error'); status.textContent = '正在繪製並壓縮選單圖…';
+      try {
+        const layout = richMenuLayout(config), canvas = await drawRichMenu(config), blob = await richMenuJPEG(canvas);
+        const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = `${BRAND_NAME}_圖文選單_${layout.w}x${layout.h}.jpg`.replace(/[\\/:*?"<>|]/g, '_');
+        document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+        status.textContent = `下載好了：${layout.w}×${layout.h}，${(blob.size / 1000000).toFixed(2)} MB`;
+      } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+      finally { button.disabled = false; }
+    });
+    document.getElementById('copy-rich-menu').addEventListener('click', async () => {
+      const status = document.getElementById('rich-menu-status'), output = document.getElementById('rich-menu-table');
+      if (richMenuErrors().length) { status.textContent = '請先修正上面的紅字提醒，再複製設定表。'; status.classList.add('is-error'); return; }
+      output.value = richMenuSettingsTable(); status.classList.remove('is-error');
+      try { await navigator.clipboard.writeText(output.value); status.textContent = '已複製設定表，可照表到 LINE 後台設定。'; }
+      catch {
+        output.hidden = false; output.focus(); output.select(); let copied = false;
+        try { copied = document.execCommand('copy'); } catch { /* 保留全文供手動複製 */ }
+        status.textContent = copied ? '已複製設定表。' : '已選取設定表，請按 Ctrl+C 或使用選單複製。';
+      }
+    });
+    // ===== Supabase 登入；登入狀態供手動存檔同步使用 =====
+    let authConnectionReason = '';
+    let authBusy = false;
+    let authRevision = 0;
+    function setAuthStatus(message, error = false) {
+      const status = document.getElementById('auth-status'); status.textContent = message; status.classList.toggle('is-error', error);
+    }
+    function renderAuth() {
+      document.getElementById('open-auth').textContent = me ? `☁ ${me.email || '已登入'}` : '🔐 登入';
+      document.getElementById('auth-login').disabled = !sb || authBusy;
+      document.getElementById('auth-signup').disabled = !sb || authBusy;
+      document.getElementById('auth-logout').disabled = !sb || !me || authBusy || cloudLibraryBusy || cloudSaveBusy;
+    }
+    function setAuthUser(user) {
+      if (me?.id !== user?.id) cloudPostIds = new Set();
+      me = user || null; renderAuth(); renderCloudControls(); renderSavedPosts();
+      scheduleAutoDownload();
+    }
+    function authErrorMessage(error) {
+      const message = String(error?.message || ''), code = String(error?.code || ''), detail = `${code} ${message}`.toLowerCase();
+      if (/invalid login credentials|invalid_credentials/.test(detail)) return 'Email 或密碼不對';
+      if (/user already registered|user_already_exists|email_exists/.test(detail)) return '這個 Email 註冊過了，直接按「登入」';
+      if (/email not confirmed|email_not_confirmed/.test(detail)) return '到 Supabase 把 Confirm email 關掉';
+      if (/password.*(?:short|least|length|6 characters)/.test(detail)) return '至少 6 個字';
+      if (/rate.?limit|too many|over_.*rate_limit/.test(detail) || error?.status === 429) return '試太多次了，等 1 分鐘';
+      if (/fetch|network|timeout|connection/.test(detail)) return '連不到 Supabase，請檢查網路後再試';
+      if (/email.*(?:invalid|valid)|email_address_invalid/.test(detail)) return '請輸入正確的 Email';
+      if (/weak_password/.test(detail)) return '密碼不符合設定的要求，請換一組';
+      return '暫時無法完成，請稍後再試';
+    }
+    function initializeAuth() {
+      if (!SB_URL.trim() || !SB_KEY.trim()) authConnectionReason = !SB_URL.trim() && !SB_KEY.trim() ? 'SB_URL、SB_KEY 還沒填' : !SB_URL.trim() ? 'SB_URL 還沒填' : 'SB_KEY 還沒填';
+      else if (SB_KEY.trim().startsWith('sb_secret_')) authConnectionReason = 'SB_KEY 不能貼 Secret key，請改用 Publishable key';
+      else if (typeof window.supabase?.createClient !== 'function') authConnectionReason = 'Supabase 程式庫載不到，請檢查網路後重新整理';
+      else {
+        try {
+          sb = window.supabase.createClient(SB_URL, SB_KEY);
+          sb.auth.onAuthStateChange((event, session) => {
+            // 只更新畫面，不在這個回呼裡等待其他 Supabase 呼叫。
+            authRevision++; setAuthUser(session?.user || null);
+            if (event === 'SIGNED_OUT') { document.getElementById('auth-password').value = ''; setAuthStatus('已登出。'); }
+          });
+          const revision = authRevision;
+          // SDK 預設會保留 session；首次開啟也主動恢復頁面上的登入狀態。
+          Promise.resolve(sb.auth.getSession()).then(({ data, error }) => {
+            if (revision !== authRevision) return;
+            if (error) { setAuthStatus(authErrorMessage(error), true); return; }
+            setAuthUser(data?.session?.user || null);
+          }).catch(error => { if (revision === authRevision) setAuthStatus(authErrorMessage(error), true); });
+        } catch { sb = null; me = null; authConnectionReason = '連線資料格式不對，請檢查 SB_URL、SB_KEY'; }
+      }
+      if (!sb) setAuthStatus(`還沒接雲端：${authConnectionReason}`, true);
+      renderAuth();
+    }
+    async function submitAuth(action) {
+      if (authBusy) return;
+      if (!sb) { setAuthStatus(`還沒接雲端：${authConnectionReason}`, true); return; }
+      if (action === 'logout' && (cloudLibraryBusy || cloudSaveBusy)) { setAuthStatus('請等雲端存取完成後再登出。', true); return; }
+      if (action === 'logout' && (aiWriting || helperBusy || imageGenerating || imagePlanning || inspectorBusy)) { setAuthStatus('請等 AI 完成後再登出，避免清理後又存入內容。', true); return; }
+      const emailInput = document.getElementById('auth-email'), passwordInput = document.getElementById('auth-password');
+      const email = emailInput.value.trim(), password = passwordInput.value;
+      if (action !== 'logout') {
+        if (!email || !emailInput.checkValidity()) { setAuthStatus('請輸入正確的 Email', true); return; }
+        if (Array.from(password).length < 6) { setAuthStatus('至少 6 個字', true); return; }
+      }
+      authBusy = true; renderAuth();
+      setAuthStatus(action === 'signup' ? '註冊中…' : action === 'logout' ? '登出中…' : '登入中…');
+      try {
+        if (action === 'logout') {
+          const clearLocal = window.confirm('要把這台電腦上的貼文也清掉嗎？借別人的電腦用，請按確定；自己的電腦按取消。');
+          const { error } = await sb.auth.signOut(); if (error) throw error;
+          authRevision++; setAuthUser(null); passwordInput.value = ''; setAuthStatus('已登出。');
+          if (clearLocal) {
+            try {
+              await clearLocalPosts();
+              setAuthStatus('已登出，這台的貼文、草稿和圖片倉庫已清空。⚙ 設定保留。');
+            } catch (error) { setAuthStatus(`已登出，但清理尚未完成：${error.message}`, true); }
+          }
+        } else {
+          const { data, error } = action === 'signup' ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          passwordInput.value = '';
+          if (action === 'signup' && !data?.session) { setAuthStatus('Supabase 的 Confirm email 還開著，關掉再按登入', true); return; }
+          if (!data?.session?.user) { setAuthStatus('尚未取得登入狀態，請再按一次登入', true); return; }
+          authRevision++; setAuthUser(data.session.user); setAuthStatus(action === 'signup' ? '註冊成功，已登入。' : '登入成功。');
+        }
+      } catch (error) { setAuthStatus(authErrorMessage(error), true); }
+      finally { authBusy = false; renderAuth(); updateStorageUsage(); }
+    }
+    document.getElementById('open-auth').addEventListener('click', () => {
+      if (me?.email) document.getElementById('auth-email').value = me.email;
+      if (!authBusy) setAuthStatus(!sb ? `還沒接雲端：${authConnectionReason}` : me ? `已登入：${me.email || '目前帳號'}` : '請輸入 Email 與密碼。', !sb);
+      renderAuth(); document.getElementById('auth-dialog').showModal();
+    });
+    document.getElementById('auth-form').addEventListener('submit', event => { event.preventDefault(); submitAuth('login'); });
+    document.getElementById('auth-signup').addEventListener('click', () => submitAuth('signup'));
+    document.getElementById('auth-logout').addEventListener('click', () => submitAuth('logout'));
+    initializeAuth();
     async function initializePostStore() {
       document.body.inert = true;
       try {
@@ -2069,7 +2603,20 @@
         renderHelper(); renderPictures(); syncPictureTextControls(); updateStorageUsage();
       }
     }
-    initializePostStore();
+    async function clearLocalPosts() {
+      document.body.inert = true;
+      try {
+        localStorage.removeItem(POSTS_KEY);
+        postStore = { entries: [], draft: null };
+        cloudStatusVersion++; pictureRestoreVersion++;
+        await restorePost({ id: makePostId(), material: {}, posts: {}, activePlatform: PLATFORMS[0] });
+        await imageWarehouseRequest('readwrite', store => store.clear());
+        renderSavedPosts(); updateStorageUsage();
+        saveStatus.textContent = '這台的貼文、草稿和圖片已清空。';
+        setPostsStatus('');
+      } finally { document.body.inert = false; }
+    }
+    postStoreInitialization = initializePostStore();
   </script>
 </body>
 </html>
