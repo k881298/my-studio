@@ -413,7 +413,7 @@
   </dialog>
   <dialog class="modal" id="posts-dialog" aria-labelledby="posts-title">
     <div class="modal-heading"><h2 id="posts-title">我的貼文</h2><button type="button" class="action-button" data-close="posts-dialog">關閉</button></div>
-    <p class="modal-note">貼文可同步到雲端，存檔時間以臺灣時間顯示。圖片仍保存在這個瀏覽器。</p>
+    <p class="modal-note">貼文和作品照片可同步到雲端，存檔時間以臺灣時間顯示。雲端圖片可透過網址公開瀏覽，請只放適合公開的作品照片。</p>
     <div class="modal-actions"><button type="button" class="action-button" id="upload-all-posts">⬆ 全部上傳到雲端</button><button type="button" class="action-button" id="download-cloud-posts">⬇ 從雲端拿回來</button></div>
     <div id="saved-posts-list"></div>
     <p class="modal-status" id="posts-status" role="status"></p>
@@ -626,6 +626,29 @@
     let imageDBPromise = null;
     let storageUsageVersion = 0;
     let pictureRestoreVersion = 0;
+    let pictureCloudUrls = {};
+    function validCloudPictureURL(value) {
+      try {
+        const url = new URL(value), base = new URL(SB_URL);
+        return url.protocol === 'https:' && url.origin === base.origin && url.pathname.startsWith('/storage/v1/object/public/images/');
+      } catch { return false; }
+    }
+    async function loadCloudPicture(id, url) {
+      if (!validCloudPictureURL(url)) return '';
+      const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 60000);
+      try {
+        const response = await fetch(url, { signal: controller.signal, credentials: 'omit' });
+        if (!response.ok) throw new Error('雲端圖片暫時讀取不到');
+        const blob = await response.blob();
+        if (!blob.type.startsWith('image/')) throw new Error('雲端圖片格式不正確');
+        const src = await new Promise((resolve, reject) => {
+          const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error('雲端圖片無法讀取')); reader.readAsDataURL(blob);
+        });
+        if (!isPictureDataURL(src)) throw new Error('雲端圖片格式不正確');
+        await storePicture(id, src);
+        return src;
+      } finally { clearTimeout(timeout); }
+    }
     function openImageWarehouse() {
       if (imageDBPromise) return imageDBPromise;
       imageDBPromise = new Promise((resolve, reject) => {
@@ -708,7 +731,10 @@
       let complete = true;
       try {
         const migrated = await migratePictureRecord(record);
-        const images = await Promise.all(pictureIds(migrated).map(async id => ({ id, src: await getStoredPicture(id) })));
+        const images = await Promise.all(pictureIds(migrated).map(async id => {
+          try { return { id, src: await getStoredPicture(id) || await loadCloudPicture(id, migrated.pictureUrls?.[id]) }; }
+          catch { return { id, src: '' }; }
+        }));
         if (version !== pictureRestoreVersion) return;
         const loaded = new Map(images.filter(picture => isPictureDataURL(picture.src)).map(picture => [picture.id, picture.src]));
         postPictures = postPictures.map(picture => ({ ...picture, src: loaded.get(picture.id) || picture.src || '' }));
@@ -716,7 +742,7 @@
         const missing = postPictures.filter(picture => !picture.src).length;
         if (missing) {
           complete = false;
-          const status = document.getElementById('picture-status'); status.textContent = `有 ${missing} 張圖片暫時無法從倉庫讀取，圖片 id 仍保留，請重新整理或重新上傳。`; status.classList.add('is-error');
+          const status = document.getElementById('picture-status'); status.textContent = `有 ${missing} 張圖片暫時讀取不到。請確認網路後重新打開；舊貼文若尚未上傳照片，請在原本的裝置按「全部上傳到雲端」。`; status.classList.add('is-error');
         }
       } catch (error) {
         if (version !== pictureRestoreVersion) return;
@@ -757,7 +783,7 @@
     function loadPictureForCanvas(src) {
       if (pictureImageCache.src === src && pictureImageCache.promise) return pictureImageCache.promise;
       const promise = new Promise((resolve, reject) => {
-        const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(new Error('圖片讀取失敗，請重新上傳這張圖。')); image.src = src;
+        const image = new Image(); image.onload = () => resolve(image); image.onerror = () => reject(new Error('圖片讀取失敗，請重新上傳這張圖。')); if (/^https:\/\//i.test(src)) image.crossOrigin = 'anonymous'; image.src = src;
       });
       pictureImageCache = { src, promise };
       promise.catch(() => { if (pictureImageCache.promise === promise) pictureImageCache = { src: '', promise: null }; });
@@ -1966,10 +1992,58 @@
     }
     async function uploadCloudRecord(client, userId, record) {
       assertCloudUser(userId);
-      const { error } = await client.from('posts').upsert({ id: String(record.id), user_id: userId, data: record, publish_date: record.publishDate || null, updated_at: new Date().toISOString() }, { onConflict: 'user_id,id' });
+      const pictureUrls = {};
+      let uploadedPictures = 0;
+      for (const id of pictureIds(record)) {
+        const existing = record.pictureUrls?.[id];
+        const prefix = `${SB_URL.replace(/\/$/, '')}/storage/v1/object/public/images/${userId}/`;
+        if (validCloudPictureURL(existing) && existing.startsWith(prefix)) { pictureUrls[id] = existing; continue; }
+        try {
+          let src = postPictures.find(picture => picture.id === id && isPictureDataURL(picture.src))?.src || await getStoredPicture(id);
+          if (!src && validCloudPictureURL(existing)) src = await loadCloudPicture(id, existing);
+          if (!isPictureDataURL(src)) throw new Error('這台找不到原圖，請回有照片的裝置重新上傳');
+          // 圖片先完成上傳，貼文只記網址，不把 base64 放進 posts 表。
+          const file = await (await fetch(src)).blob();
+          const mime = file.type;
+          const extension = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+          const path = `${userId}/${encodeURIComponent(id)}.${extension}`;
+          assertCloudUser(userId);
+          const { error } = await client.storage.from('images').upload(path, file, { contentType: mime, upsert: true });
+          if (error) throw error;
+          const { data } = client.storage.from('images').getPublicUrl(path);
+          if (!validCloudPictureURL(data?.publicUrl)) throw new Error('尚未取得圖片網址');
+          pictureUrls[id] = data.publicUrl;
+          uploadedPictures++;
+          rememberCloudPictures(record.id, pictureUrls, Date.now());
+        } catch (error) { throw new Error(`照片「${record.pictureNames?.[id] || id}」上傳失敗：${cloudPictureError(error)}`); }
+      }
+      assertCloudUser(userId);
+      const cloudRecord = { ...stripPictureRecord(record), pictureUrls, savedAt: uploadedPictures ? Date.now() : record.savedAt };
+      const { error } = await client.from('posts').upsert({ id: String(record.id), user_id: userId, data: cloudRecord, publish_date: record.publishDate || null, updated_at: new Date().toISOString() }, { onConflict: 'user_id,id' });
       if (error) throw error;
       assertCloudUser(userId);
       cloudPostIds.add(String(record.id));
+      rememberCloudPictures(record.id, pictureUrls, cloudRecord.savedAt);
+      return { uploadedPictures, record: cloudRecord };
+    }
+    function rememberCloudPictures(recordId, pictureUrls, savedAt) {
+      // 儲存網址時只補圖片資訊，保留上傳期間仍在編輯的文字與草稿。
+      const entries = postStore.entries.map(entry => String(entry.id) === String(recordId) ? { ...entry, savedAt, pictureUrls: { ...entry.pictureUrls, ...pictureUrls } } : entry);
+      const draft = postStore.draft && String(postStore.draft.id) === String(recordId) ? { ...postStore.draft, pictureUrls: { ...postStore.draft.pictureUrls, ...pictureUrls } } : postStore.draft;
+      if (String(currentPostId) === String(recordId)) {
+        Object.assign(pictureCloudUrls, pictureUrls);
+        postPictures = postPictures.map(picture => ({ ...picture, url: pictureUrls[picture.id] || picture.url }));
+      }
+      if (!persistPostStore({ entries, draft })) throw new Error('照片已上傳，但這台存不下圖片網址；原圖仍保留，請確認儲存空間後再存一次。');
+    }
+    function cloudPictureError(error) {
+      const message = String(error?.message || ''), status = String(error?.statusCode || error?.status || '');
+      if (/bucket.*not found/i.test(message)) return '雲端還沒有 images 桶子，到 SQL Editor 貼圖片那段按 Run';
+      if (/row.level security|not authorized|permission/i.test(message) || status === '403') return '雲端不讓你傳圖，SQL 的圖片權限那段沒跑到';
+      if (error?.name === 'AbortError') return '等太久，請稍後再試';
+      if (/fetch|network/i.test(message)) return '連不到雲端，請檢查網路';
+      if (/size|too large|exceed/i.test(message) || status === '413') return '圖片超過空間允許的大小';
+      return message || '雲端圖片暫時無法上傳';
     }
     async function downloadCloudPosts() {
       const context = requireCloudUser();
@@ -1998,6 +2072,12 @@
           const local = merged.get(record.id);
           if (!local) { merged.set(record.id, record); added++; }
           else if (savedOrder(record) > savedOrder(local)) { merged.set(record.id, record); updated++; }
+          else {
+            // 同一版本也補回新上傳的圖片網址，讓先拿過文字的手機能再拿照片。
+            const sharedIds = new Set(pictureIds(local));
+            const urls = Object.fromEntries(Object.entries(record.pictureUrls || {}).filter(([id, url]) => sharedIds.has(id) && validCloudPictureURL(url)));
+            merged.set(record.id, { ...local, pictureUrls: { ...local.pictureUrls, ...urls } });
+          }
         }
         if (!persistPostStore({ ...postStore, entries: sortedSavedPosts([...merged.values()]) })) throw new Error('這台電腦存不下，原存檔仍保留。');
         cloudPostIds = new Set(records.map(record => record.id));
@@ -2020,7 +2100,7 @@
       finally { cloudLibraryBusy = false; renderCloudControls(); renderSavedPosts(); }
     }
     function cloudOperationError(error) {
-      if (/登入帳號已變更|格式不完整|存不下/.test(error?.message || '')) return error.message;
+      if (/登入帳號已變更|格式不完整|存不下|照片「/.test(error?.message || '')) return error.message;
       return cloudSaveErrorMessage(error);
     }
     function scheduleAutoDownload() {
@@ -2049,6 +2129,7 @@
         workSlug: selectedWork ? selectedWork.slug : '',
         pictures: postPictures.map(picture => picture.id),
         pictureNames: Object.fromEntries(postPictures.map(picture => [picture.id, picture.name])),
+        pictureUrls: Object.fromEntries(postPictures.filter(picture => validCloudPictureURL(pictureCloudUrls[picture.id])).map(picture => [picture.id, pictureCloudUrls[picture.id]])),
         mainPictureId,
         pictureText: { ...pictureText },
         downloadSizeId,
@@ -2095,9 +2176,10 @@
       syncPictureTextControls();
       document.getElementById('picture-text-status').textContent = '';
       const normalized = stripPictureRecord(record);
+      pictureCloudUrls = Object.fromEntries(Object.entries(record.pictureUrls || {}).filter(([, url]) => validCloudPictureURL(url)));
       postPictures = pictureIds(normalized).map(id => {
         const old = (record.pictures || []).find(picture => picture && typeof picture === 'object' && picture.id === id);
-        return { id, name: normalized.pictureNames[id], src: isPictureDataURL(old?.src) ? old.src : '' };
+        return { id, name: normalized.pictureNames[id], url: pictureCloudUrls[id] || '', src: isPictureDataURL(old?.src) ? old.src : pictureCloudUrls[id] || '' };
       });
       mainPictureId = postPictures.some(picture => picture.id === record.mainPictureId) ? record.mainPictureId : postPictures[0]?.id || null;
       document.getElementById('picture-status').textContent = '';
@@ -2224,6 +2306,7 @@
     }
     function cloudSaveErrorMessage(error) {
       const code = String(error?.code || ''), message = String(error?.message || error || '');
+      if (/^照片「|^照片已上傳/.test(message)) return message;
       if (['42P01', 'PGRST205'].includes(code)) return '雲端還沒有 posts 表，到 SQL Editor 貼那段按 Run。';
       if (code === '42501' || /row[- ]level security/i.test(message)) return '雲端不讓你存，SQL 的權限那段沒跑到。';
       if (code === 'PGRST204') return '雲端 posts 表的欄位不符，請確認建立表格的 SQL 已完整執行。';
@@ -2250,8 +2333,8 @@
       const client = sb, userId = me.id, button = document.getElementById('save-post');
       cloudSaveBusy = true; renderCloudControls(); cloudStatus.textContent = `這台電腦已存好，正在存雲端：（${record.name}）`;
       try {
-        await uploadCloudRecord(client, userId, record);
-        if (version === cloudStatusVersion) cloudStatus.textContent = `☁ 雲端也存了：（${record.name}）`;
+        const result = await uploadCloudRecord(client, userId, record);
+        if (version === cloudStatusVersion) cloudStatus.textContent = `☁ 雲端也存了：（${record.name}）（傳了 ${result.uploadedPictures} 張圖）`;
       } catch (error) {
         if (version === cloudStatusVersion) { cloudStatus.textContent = `${cloudSaveErrorMessage(error)} 這台電腦有存到，不會不見。`; cloudStatus.classList.add('is-error'); }
       } finally { cloudSaveBusy = false; renderCloudControls(); renderSavedPosts(); }
