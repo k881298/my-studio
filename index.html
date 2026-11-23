@@ -329,10 +329,10 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-lockup"><img class="brand-mark" src="https://xiujing-paper-art.k881298.chatgpt.site/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
+    <div class="brand-lockup"><img class="brand-mark" src="https://xiujingpaper.com/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
     <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-calendar">📅 日曆</button><button type="button" class="action-button settings-button" id="open-rich-menu">📋 圖文選單</button><button type="button" class="action-button settings-button" id="open-auth">🔐 登入</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
   </header>
-  <div class="intro"><p class="quote">從一幅紙景，開始今天的分享。</p><a class="collection-link" href="https://xiujing-paper-art.k881298.chatgpt.site/works" target="_blank" rel="noopener">作品典藏 ↗</a></div>
+    <div class="intro"><p class="quote">從一幅紙景，開始今天的分享。</p><a class="collection-link" href="https://xiujingpaper.com/works" target="_blank" rel="noopener">作品典藏 ↗</a></div>
   <main class="workspace">
     <section class="panel" aria-labelledby="material-title">
       <div class="panel-header"><h2 id="material-title">素材卡</h2><span class="small-label">每件作品，一張卡</span></div>
@@ -527,7 +527,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ===== 可自行修改的品牌、平台與素材卡欄位 =====
-    // 這兩個可以公開，守門的是 Supabase 的 RLS；sb_secret_ 開頭的絕對不要貼。
+    // 網址和公開金鑰可以放在前端，資料存取由 Supabase 的 RLS 限制。請勿放入伺服器金鑰。
     const SB_URL = 'https://hyhbrpoxxstpwuewmehh.supabase.co';
     const SB_KEY = 'sb_publishable_okhWZst1WWZl2jIK1dXvDw_nWD_ZB2A';
     let sb = null;
@@ -577,7 +577,10 @@
     const IMAGE_TIMEOUT_MS = 120000;
     // 與品牌規格.md 的「平台字數上限」一致（查詢日期：2026/10/15）。
     const PLATFORM_CHARACTER_LIMITS = { Instagram: 2200, Facebook: 63206, Threads: 500 };
-    const BRAND_WEBSITE = 'https://xiujing-paper-art.k881298.chatgpt.site';
+    const BRAND_WEBSITE = 'https://xiujingpaper.com';
+    // 這六張作品照已同步至圖片倉庫，可跨站載入以便裁切和加字。
+    const CLOUD_WORK_PHOTO_SLUGS = new Set(['lotus-and-koi', 'ink-blossom-lady', 'blue-magpie-in-bamboo', 'autumn-reading-lady', 'white-waterbird', 'cranes-and-plum']);
+    const CLOUD_WORK_PHOTO_ROOT = `${SB_URL}/storage/v1/object/public/images/5dc2185c-8e78-4553-a9c4-c835ca0332c6/`;
     // 作品名稱、圖片路徑與畫面描述取自網站「作品典藏」，讀取日期：2026/10/15。
     // 此處保留作品資料快照；收藏狀態、價格、尺寸與紙材請另行確認。
     const WORKS = [
@@ -1017,7 +1020,9 @@
           let objectURL;
           try {
             if (!work && !item.type.startsWith('image/')) throw new Error('請選擇圖片檔。');
-            const source = work ? work.image : (objectURL = URL.createObjectURL(item));
+            const source = work
+              ? CLOUD_WORK_PHOTO_SLUGS.has(work.slug) ? `${CLOUD_WORK_PHOTO_ROOT}calendar-${work.slug}.webp` : work.image
+              : (objectURL = URL.createObjectURL(item));
             const src = await shrinkPicture(source, Boolean(work));
             const entry = { id: makePostId(), src, name: item.name };
             await storePicture(entry.id, entry.src);
@@ -2982,7 +2987,7 @@
     }
     function initializeAuth() {
       if (!SB_URL.trim() || !SB_KEY.trim()) authConnectionReason = !SB_URL.trim() && !SB_KEY.trim() ? 'SB_URL、SB_KEY 還沒填' : !SB_URL.trim() ? 'SB_URL 還沒填' : 'SB_KEY 還沒填';
-      else if (SB_KEY.trim().startsWith('sb_secret_')) authConnectionReason = 'SB_KEY 不能貼 Secret key，請改用 Publishable key';
+      else if (!SB_KEY.trim().startsWith('sb_publishable_')) authConnectionReason = 'SB_KEY 請使用 Supabase 的 Publishable key';
       else if (typeof window.supabase?.createClient !== 'function') authConnectionReason = 'Supabase 程式庫載不到，請檢查網路後重新整理';
       else {
         try {
