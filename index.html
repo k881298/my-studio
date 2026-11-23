@@ -229,6 +229,51 @@
     .modal-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
     .modal-note { color: var(--muted); font-size: 12px; margin: 0; }
     .modal-status { min-height: 1.7em; margin: 12px 0 0; font-size: 13px; color: var(--accent); }
+    .calendar-dialog { width: min(960px, calc(100% - 32px)); }
+    .calendar-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .calendar-month { flex: 1; text-align: center; font-size: 20px; white-space: nowrap; }
+    .calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .calendar-weekdays { border: 1px solid var(--line); border-bottom: 0; background: var(--header); border-radius: 8px 8px 0 0; }
+    .calendar-weekdays span { padding: 10px 0; text-align: center; font-size: 13px; color: var(--muted); }
+    .calendar-grid { border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .calendar-day { min-width: 0; min-height: 108px; padding: 7px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); }
+    .calendar-day.is-other-month { background: var(--soft); color: var(--muted); }
+    .calendar-day-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; font-size: 13px; border-radius: 8px; }
+    .calendar-day-number.is-today { background: var(--brand); color: var(--white); text-shadow: 0 1px 2px var(--ink); font-weight: 700; }
+    .calendar-post { display: block; min-width: 0; margin-top: 5px; padding: 4px 6px; border-radius: 4px; background: var(--brand); color: var(--ink); font-size: 12px; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .calendar-summary { margin: 16px 0 0; font-size: 13px; color: var(--muted); }
+    .calendar-summary h3 { margin: 0 0 8px; font-size: 15px; color: var(--ink); }
+    .calendar-summary p { margin: 5px 0; overflow-wrap: anywhere; }
+    .calendar-summary .is-error { color: var(--error); }
+    .calendar-toolbar .calendar-line-friends { display: flex; align-items: center; gap: 6px; margin: 0 0 0 auto; font-size: 12px; }
+    .calendar-toolbar .calendar-line-friends[hidden] { display: none; }
+    .calendar-line-friends input { width: 6em; max-width: 100%; min-width: 0; padding: 6px; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+    .calendar-day-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 0 3px; min-width: 0; }
+    .calendar-day.is-big-day { background: color-mix(in srgb, var(--brand) 35%, var(--surface)); }
+    .calendar-big-day-name { min-width: 0; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--brand) 30%, var(--ink)); overflow-wrap: anywhere; }
+    .calendar-day { display: flex; flex-direction: column; align-items: stretch; text-align: left; font: inherit; color: inherit; border-top: 0; border-left: 0; cursor: pointer; }
+    .calendar-day[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--brand); }
+    .calendar-day:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .calendar-post.is-incomplete { border-left: 3px solid var(--error); background: var(--review-error-bg); }
+    .calendar-details { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .calendar-details h3 { margin: 0 0 8px; font-size: 15px; }
+    .calendar-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 9px 0; }
+    .calendar-entry-info { flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; }
+    .calendar-entry-meta, .calendar-entry-warning { display: block; font-size: 12px; color: var(--muted); }
+    .calendar-entry-warning { color: var(--error); }
+    .calendar-entry-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+    .calendar-entry-actions input { max-width: 100%; min-width: 0; font: inherit; }
+    @media (max-width: 640px) {
+      .calendar-dialog { width: calc(100% - 16px); padding: 12px; }
+      .calendar-toolbar { gap: 5px; }
+      .calendar-toolbar .action-button { padding: 7px 5px; font-size: 11px; }
+      .calendar-month { font-size: 15px; }
+      .calendar-day { min-height: 86px; padding: 3px; }
+      .calendar-day-number { width: 24px; height: 24px; font-size: 12px; }
+      .calendar-post { margin-top: 3px; padding: 3px; font-size: 10px; }
+      .calendar-summary { font-size: 12px; }
+      .calendar-big-day-name { flex-basis: 100%; font-size: 9px; }
+    }
     /* 秀境紙藝：暖紙、古金與含框原作。 */
     .topbar { background: var(--surface); border-top: 4px solid var(--brand); padding: 14px 30px; }
     .brand-lockup { display: flex; align-items: center; gap: 16px; min-width: 0; }
@@ -285,7 +330,7 @@
 <body>
   <header class="topbar">
     <div class="brand-lockup"><img class="brand-mark" src="https://xiujing-paper-art.k881298.chatgpt.site/optimized/brand-mark.webp" alt="秀境紙藝標誌"><div><h1 class="brand-title" id="workbench-title">秀境紙藝｜社群工作台</h1><p>一紙入境，歲月成景。</p></div></div>
-    <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-rich-menu">📋 圖文選單</button><button type="button" class="action-button settings-button" id="open-auth">🔐 登入</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
+    <div class="header-actions"><span class="edition">我的創作書桌</span><button type="button" class="action-button settings-button" id="new-post">＋ 新的一篇</button><button type="button" class="action-button settings-button" id="open-posts">📁 我的貼文</button><button type="button" class="action-button settings-button" id="open-calendar">📅 日曆</button><button type="button" class="action-button settings-button" id="open-rich-menu">📋 圖文選單</button><button type="button" class="action-button settings-button" id="open-auth">🔐 登入</button><button type="button" class="action-button settings-button" id="open-settings">⚙ 設定</button></div>
   </header>
   <div class="intro"><p class="quote">從一幅紙景，開始今天的分享。</p><a class="collection-link" href="https://xiujing-paper-art.k881298.chatgpt.site/works" target="_blank" rel="noopener">作品典藏 ↗</a></div>
   <main class="workspace">
@@ -418,6 +463,31 @@
     <div id="saved-posts-list"></div>
     <p class="modal-status" id="posts-status" role="status"></p>
   </dialog>
+  <dialog class="modal calendar-dialog" id="calendar-dialog" aria-labelledby="calendar-title">
+    <div class="modal-heading"><h2 id="calendar-title">📅 日曆</h2><button type="button" class="action-button" data-close="calendar-dialog">關閉</button></div>
+    <div class="calendar-toolbar">
+      <button type="button" class="action-button" id="calendar-previous">‹ 上個月</button>
+      <strong class="calendar-month" id="calendar-month" aria-live="polite"></strong>
+      <button type="button" class="action-button" id="calendar-next">下個月 ›</button>
+      <button type="button" class="action-button" id="calendar-today">今天</button>
+      <label class="calendar-line-friends" id="calendar-line-friends-field" hidden>LINE 好友人數 <input id="calendar-line-friends" type="number" min="0" max="999999999" step="1" inputmode="numeric"></label>
+    </div>
+    <div class="calendar-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="calendar-grid" id="calendar-grid" aria-label="貼文月曆"></div>
+    <section class="calendar-summary" aria-labelledby="calendar-summary-title">
+      <h3 id="calendar-summary-title">這個月的總結</h3>
+      <div id="calendar-summary" role="status"></div>
+    </section>
+    <p class="modal-status" id="calendar-status" role="status"></p>
+    <section class="calendar-details" aria-labelledby="calendar-day-title">
+      <h3 id="calendar-day-title">這一天</h3>
+      <div id="calendar-day-posts"></div>
+    </section>
+    <section class="calendar-details" aria-labelledby="calendar-unscheduled-title">
+      <h3 id="calendar-unscheduled-title">還沒排日子</h3>
+      <div id="calendar-unscheduled-posts"></div>
+    </section>
+  </dialog>
   <dialog class="modal" id="paste-dialog" aria-labelledby="paste-title">
     <div class="modal-heading"><h2 id="paste-title">貼回 AI 寫好的內容</h2><button type="button" class="action-button" data-close="paste-dialog">關閉</button></div>
     <label for="paste-input">完整回覆</label>
@@ -465,6 +535,18 @@
     const BRAND_NAME = '秀境紙藝';
     const ACCOUNT_NAME = 'xiujing0905'; // 來自品牌網站的 Instagram／Threads 帳號。
     const PLATFORMS = ['Instagram', 'Facebook', 'Threads', 'LINE'];
+    // 跟我的品牌沒關係的就刪掉；我自己的重要日子也加在這裡。
+    const BIG_DAYS = [
+      { date: '2026-11-27', name: '黑色星期五' },
+      { date: '2026-12-12', name: '雙 12' },
+      { date: '2026-12-22', name: '冬至' },
+      { date: '2026-12-25', name: '聖誕節' },
+      { date: '2026-12-31', name: '跨年' },
+      { date: '2027-01-01', name: '元旦' },
+      { date: '2026-11-27', name: '《花間題墨》作品分享' },
+      { date: '2026-12-05', name: '《秋庭展卷》作品分享' },
+      { date: '2026-12-19', name: '《梅影雙鶴》作品分享' }
+    ];
     const PIC_SIZE = { Facebook: { width: 1080, height: 1080 }, Instagram: { width: 1080, height: 1350 }, LINE: { width: 1040, height: 1040 }, Threads: { width: 1080, height: 1350 } };
     const SIZES = [
       { id: 'platform', name: '跟著平台' },
@@ -2083,7 +2165,7 @@
         cloudPostIds = new Set(records.map(record => record.id));
         setPostsStatus(`拿回來了：新增 ${added} 篇、更新 ${updated} 篇`);
       } catch (error) { setPostsStatus(cloudOperationError(error), true); }
-      finally { cloudLibraryBusy = false; renderCloudControls(); renderSavedPosts(); }
+      finally { cloudLibraryBusy = false; renderCloudControls(); renderSavedPosts(); if (calendarDialog.open) renderCalendar(); }
     }
     async function uploadAllPosts() {
       const context = requireCloudUser();
@@ -2115,6 +2197,305 @@
     }
     document.getElementById('upload-all-posts').addEventListener('click', uploadAllPosts);
     document.getElementById('download-cloud-posts').addEventListener('click', downloadCloudPosts);
+    // 月曆只讀取同一份 postStore.entries，不另外儲存貼文或日期。
+    const calendarDialog = document.getElementById('calendar-dialog');
+    const calendarLineFriends = document.getElementById('calendar-line-friends');
+    const CALENDAR_LINE_FRIENDS_KEY = 'xiujing-calendar-line-friends';
+    const CALENDAR_LINE_LIMIT = 200;
+    const CALENDAR_DEFAULT_LINE_FRIENDS = '7';
+    const calendarHasLine = PLATFORMS.includes('LINE');
+    document.getElementById('calendar-line-friends-field').hidden = !calendarHasLine;
+    if (calendarHasLine) {
+      calendarLineFriends.value = CALENDAR_DEFAULT_LINE_FRIENDS;
+      try {
+        const savedCount = localStorage.getItem(CALENDAR_LINE_FRIENDS_KEY);
+        if (savedCount !== null) calendarLineFriends.value = savedCount;
+        else localStorage.setItem(CALENDAR_LINE_FRIENDS_KEY, CALENDAR_DEFAULT_LINE_FRIENDS);
+      }
+      catch { /* 無法讀取時仍可在當前頁面試算。 */ }
+      calendarLineFriends.addEventListener('input', () => {
+        const value = Number.isInteger(calendarLineFriends.valueAsNumber) && calendarLineFriends.validity.valid ? calendarLineFriends.value : '';
+        try { localStorage.setItem(CALENDAR_LINE_FRIENDS_KEY, value); }
+        catch { /* 無法儲存時仍可在當前頁面試算。 */ }
+        renderCalendar();
+      });
+    }
+    let calendarMonth = calendarCurrentMonth();
+    let selectedCalendarDate = '';
+    function calendarDateLabel(key) {
+      const weekday = ['日', '一', '二', '三', '四', '五', '六'][new Date(`${key}T00:00:00Z`).getUTCDay()];
+      return `${key.replaceAll('-', '/')}（${weekday}）`;
+    }
+    function calendarWrittenPlatforms(record) {
+      return PLATFORMS.filter(platform => typeof record.posts?.[platform] === 'string' && record.posts[platform].trim());
+    }
+    function calendarMissingItems(record) {
+      const missing = [];
+      if (!pictureIds(record).length) missing.push('缺圖');
+      if (!calendarWrittenPlatforms(record).length) missing.push('還沒寫');
+      return missing;
+    }
+    function setCalendarStatus(message, error = false) {
+      const status = document.getElementById('calendar-status');
+      status.textContent = message;
+      status.classList.toggle('is-error', error);
+    }
+    function calendarTodayParts() {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      const get = type => Number(parts.find(part => part.type === type).value);
+      return { year: get('year'), month: get('month') - 1, day: get('day') };
+    }
+    function calendarCurrentMonth() {
+      const today = calendarTodayParts();
+      return new Date(Date.UTC(today.year, today.month, 1));
+    }
+    function calendarDateKey(date) {
+      return `${String(date.getUTCFullYear()).padStart(4, '0')}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+    }
+    function calendarValidDate(value) {
+      if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      const date = new Date(`${value}T00:00:00Z`);
+      return Number.isFinite(date.getTime()) && calendarDateKey(date) === value;
+    }
+    function calendarPostTitle(record) {
+      const field = MATERIAL_FIELDS.find(field => field.type !== 'date' && !/^(?:date|publishDate)$/i.test(field.id) && !/^(?:(?:預計|發布|發佈)\s*)?日期$/.test(field.label.trim()));
+      const raw = field && record.material?.[field.id];
+      // 原有第一格同時包含日期與作品名稱，標籤只取後面的主題。
+      const topic = typeof raw === 'string' ? raw.replace(/^\s*\d{4}[/-]\d{1,2}[/-]\d{1,2}\s*(?:[（(][^）)]*[）)])?[\s，,｜|：:]*/, '').trim() : '';
+      return topic || record.name || '未命名貼文';
+    }
+    function calendarShortDate(key) {
+      const [, month, day] = key.split('-').map(Number);
+      return `${month}/${day}`;
+    }
+    function calendarEmptyGap(year, month, todayKey, byDate) {
+      const last = new Date(Date.UTC(year, month + 1, 0));
+      if (calendarDateKey(last) < todayKey) return null;
+      const best = { count: 0, start: '', end: '' };
+      let start = '', count = 0;
+      for (let day = 1; day <= last.getUTCDate(); day++) {
+        const key = calendarDateKey(new Date(Date.UTC(year, month, day)));
+        if (key < todayKey || byDate.has(key)) { count = 0; continue; }
+        if (count === 0) start = key;
+        count++;
+        if (count > best.count) Object.assign(best, { count, start, end: key });
+      }
+      return best;
+    }
+    function renderCalendarSummary(year, month, todayKey, byDate, monthPosts, incomplete, unscheduledCount) {
+      const summary = document.getElementById('calendar-summary');
+      summary.replaceChildren();
+      function line(message, error = false) {
+        const row = document.createElement('p');
+        row.textContent = message;
+        if (error) row.classList.add('is-error');
+        summary.append(row);
+      }
+      line(`這個月排了 ${monthPosts.length} 篇，還缺東西的 ${incomplete} 篇，還沒排日子的 ${unscheduledCount} 篇`, incomplete > 0 || unscheduledCount > 0);
+      if (calendarHasLine) {
+        const sends = monthPosts.filter(record => typeof record.posts?.LINE === 'string' && record.posts.LINE.trim()).length;
+        const friends = calendarLineFriends.valueAsNumber;
+        if (!Number.isInteger(friends) || !calendarLineFriends.validity.valid) {
+          line(`LINE 群發 ${sends} 次。上面填 LINE 好友人數，就會算用掉幾則`);
+        } else {
+          const used = sends * friends;
+          const exceeded = used > CALENDAR_LINE_LIMIT;
+          line(`LINE 群發 ${sends} 次 × 好友 ${friends} 人 ＝ ${used} 則（免費方案一個月 ${CALENDAR_LINE_LIMIT} 則，還剩 ${Math.max(0, CALENDAR_LINE_LIMIT - used)} 則）${exceeded ? ' ⚠ 超過了，後面的會發不出去' : ''}`, exceeded);
+        }
+      }
+      const gap = calendarEmptyGap(year, month, todayKey, byDate);
+      if (gap) {
+        const range = gap.count ? `（${calendarShortDate(gap.start)}～${calendarShortDate(gap.end)}）` : '';
+        line(`最久連續 ${gap.count} 天沒有貼文${range}${gap.count >= 7 ? ' ⚠ 超過一週' : ''}`, gap.count >= 7);
+      }
+      const monthKey = calendarDateKey(calendarMonth).slice(0, 7);
+      const upcoming = BIG_DAYS.filter(day => calendarValidDate(day.date) && day.date.slice(0, 7) === monthKey && day.date >= todayKey);
+      upcoming.sort((a, b) => a.date.localeCompare(b.date));
+      for (const day of upcoming) {
+        const date = new Date(`${day.date}T00:00:00Z`);
+        date.setUTCDate(date.getUTCDate() - 7);
+        const first = calendarDateKey(date);
+        let count = 0;
+        for (const [key, records] of byDate) {
+          if (key >= first && key <= day.date) count += records.length;
+        }
+        const label = `${calendarShortDate(day.date)} ${day.name}`;
+        line(count ? `✅ ${label}：前面排了 ${count} 篇` : `⚠ ${label}：當天和前 7 天都沒有貼文`, count === 0);
+      }
+    }
+    function renderCalendar() {
+      const year = calendarMonth.getUTCFullYear(), month = calendarMonth.getUTCMonth();
+      document.getElementById('calendar-month').textContent = `${year} 年 ${month + 1} 月`;
+      const grid = document.getElementById('calendar-grid'); grid.replaceChildren();
+      const today = calendarTodayParts(), todayKey = calendarDateKey(new Date(Date.UTC(today.year, today.month, today.day)));
+      const byDate = new Map(), unscheduled = [], monthPosts = [];
+      let incomplete = 0;
+      for (const record of postStore.entries) {
+        if (!calendarValidDate(record.publishDate)) { unscheduled.push(record); continue; }
+        if (!byDate.has(record.publishDate)) byDate.set(record.publishDate, []);
+        byDate.get(record.publishDate).push(record);
+        if (record.publishDate.startsWith(`${year}-${String(month + 1).padStart(2, '0')}-`)) {
+          monthPosts.push(record);
+          if (calendarMissingItems(record).length) incomplete++;
+        }
+      }
+      const leading = calendarMonth.getUTCDay(), days = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      const cells = Math.ceil((leading + days) / 7) * 7;
+      for (let index = 0; index < cells; index++) {
+        const date = new Date(Date.UTC(year, month, index - leading + 1)), key = calendarDateKey(date);
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.dataset.date = key;
+        cell.className = `calendar-day${date.getUTCMonth() !== month ? ' is-other-month' : ''}`;
+        const dayPosts = byDate.get(key) || [];
+        const bigDayNames = BIG_DAYS.filter(day => day.date === key).map(day => day.name).join('・');
+        if (bigDayNames) cell.classList.add('is-big-day');
+        cell.setAttribute('aria-label', `${calendarDateLabel(key)}${bigDayNames ? ` ${bigDayNames}` : ''}，${dayPosts.length} 篇`);
+        cell.setAttribute('aria-pressed', String(key === selectedCalendarDate));
+        cell.addEventListener('click', () => {
+          selectedCalendarDate = key;
+          calendarMonth = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+          setCalendarStatus('');
+          renderCalendar();
+          grid.querySelector(`[data-date="${key}"]`)?.focus();
+        });
+        const number = document.createElement('time'); number.dateTime = key;
+        number.className = `calendar-day-number${key === todayKey ? ' is-today' : ''}`;
+        number.textContent = String(date.getUTCDate());
+        if (key === todayKey) number.setAttribute('aria-current', 'date');
+        const heading = document.createElement('span');
+        heading.className = 'calendar-day-heading';
+        heading.append(number);
+        if (bigDayNames) {
+          const name = document.createElement('span');
+          name.className = 'calendar-big-day-name';
+          name.textContent = bigDayNames;
+          heading.append(name);
+        }
+        cell.append(heading);
+        for (const record of dayPosts) {
+          const missing = calendarMissingItems(record);
+          const tag = document.createElement('span'); tag.className = 'calendar-post';
+          if (missing.length) tag.classList.add('is-incomplete');
+          tag.textContent = `${missing.length ? '⚠ ' : ''}${calendarPostTitle(record)}`; tag.title = tag.textContent;
+          cell.append(tag);
+        }
+        grid.append(cell);
+      }
+      renderCalendarSummary(year, month, todayKey, byDate, monthPosts, incomplete, unscheduled.length);
+      const selectedNames = BIG_DAYS.filter(day => day.date === selectedCalendarDate).map(day => day.name).join('・');
+      document.getElementById('calendar-day-title').textContent = selectedCalendarDate ? `${calendarDateLabel(selectedCalendarDate)}${selectedNames ? `｜${selectedNames}` : ''}` : '這一天';
+      document.getElementById('calendar-unscheduled-title').textContent = `還沒排日子（${unscheduled.length} 篇）`;
+      renderCalendarEntries('calendar-day-posts', byDate.get(selectedCalendarDate) || [], true);
+      renderCalendarEntries('calendar-unscheduled-posts', unscheduled, false);
+    }
+    function renderCalendarEntries(containerId, records, scheduled) {
+      const container = document.getElementById(containerId);
+      container.replaceChildren();
+      if (!records.length) {
+        const empty = document.createElement('p');
+        empty.className = 'modal-note';
+        empty.textContent = scheduled && !selectedCalendarDate ? '先點月曆上的一天' : '沒有貼文。';
+        container.append(empty);
+        return;
+      }
+      const platformNames = { Facebook: 'FB', Instagram: 'IG' };
+      for (const record of records) {
+        const row = document.createElement('div');
+        row.className = 'calendar-entry';
+        const info = document.createElement('div');
+        info.className = 'calendar-entry-info';
+        const title = document.createElement('strong');
+        title.textContent = calendarPostTitle(record);
+        info.append(title);
+        const platforms = calendarWrittenPlatforms(record);
+        if (platforms.length) {
+          const meta = document.createElement('small');
+          meta.className = 'calendar-entry-meta';
+          meta.textContent = platforms.map(platform => platformNames[platform] || platform).join('・');
+          info.append(meta);
+        }
+        const missing = calendarMissingItems(record);
+        if (missing.length) {
+          const warning = document.createElement('small');
+          warning.className = 'calendar-entry-warning';
+          warning.textContent = `⚠ ${missing.join('、')}`;
+          info.append(warning);
+        }
+        const actions = document.createElement('div');
+        actions.className = 'calendar-entry-actions';
+        if (scheduled) {
+          const input = document.createElement('input');
+          input.type = 'date';
+          input.value = record.publishDate;
+          input.setAttribute('aria-label', `${title.textContent}的預計發布日`);
+          input.addEventListener('change', async () => {
+            if (!(await changeCalendarDate(record.id, input.value))) input.value = record.publishDate;
+          });
+          actions.append(input);
+        } else {
+          actions.append(calendarAction('排到這一天', () => {
+            if (!selectedCalendarDate) { setCalendarStatus('先點月曆上的一天', true); return; }
+            return changeCalendarDate(record.id, selectedCalendarDate);
+          }));
+        }
+        actions.append(calendarAction('打開', () => openSavedPost(record, calendarDialog)));
+        if (scheduled) actions.append(calendarAction('拿掉日子', () => changeCalendarDate(record.id, '')));
+        row.append(info, actions);
+        container.append(row);
+      }
+    }
+    function calendarAction(label, handler) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'action-button';
+      button.textContent = label;
+      button.addEventListener('click', handler);
+      return button;
+    }
+    async function changeCalendarDate(id, publishDate) {
+      if (cloudSaveBusy || cloudLibraryBusy) { setCalendarStatus('正在同步，請稍後再試。', true); return false; }
+      const record = postStore.entries.find(entry => entry.id === id);
+      if (!record || (publishDate && !calendarValidDate(publishDate))) return false;
+      const updated = { ...record, publishDate, savedAt: Date.now() };
+      const entries = postStore.entries.map(entry => entry.id === id ? updated : entry);
+      const draft = postStore.draft?.id === id ? { ...postStore.draft, publishDate } : postStore.draft;
+      if (!persistPostStore({ entries, draft })) { setCalendarStatus('這台電腦未能儲存排程，請稍後再試。', true); return false; }
+      if (currentPostId === id) document.getElementById('publish-date').value = publishDate;
+      if (publishDate) {
+        selectedCalendarDate = publishDate;
+        calendarMonth = new Date(`${publishDate.slice(0, 7)}-01T00:00:00Z`);
+      }
+      renderCalendar();
+      const message = publishDate ? `排到 ${calendarDateLabel(publishDate)}` : '已拿掉日子';
+      setCalendarStatus(message);
+      if (sb && me) {
+        cloudSaveBusy = true;
+        renderCloudControls();
+        try { await uploadCloudRecord(sb, me.id, updated); }
+        catch (error) { setCalendarStatus(`${message}（已存本機，雲端同步失敗）${cloudSaveErrorMessage(error)}`, true); }
+        finally { cloudSaveBusy = false; renderCloudControls(); }
+      }
+      return true;
+    }
+    document.getElementById('open-calendar').addEventListener('click', () => {
+      calendarMonth = calendarCurrentMonth(); selectedCalendarDate = ''; setCalendarStatus(''); renderCalendar(); calendarDialog.showModal();
+    });
+    document.getElementById('calendar-previous').addEventListener('click', () => {
+      calendarMonth = new Date(Date.UTC(calendarMonth.getUTCFullYear(), calendarMonth.getUTCMonth() - 1, 1));
+      selectedCalendarDate = '';
+      renderCalendar();
+    });
+    document.getElementById('calendar-next').addEventListener('click', () => {
+      calendarMonth = new Date(Date.UTC(calendarMonth.getUTCFullYear(), calendarMonth.getUTCMonth() + 1, 1));
+      selectedCalendarDate = '';
+      renderCalendar();
+    });
+    document.getElementById('calendar-today').addEventListener('click', () => {
+      calendarMonth = calendarCurrentMonth();
+      selectedCalendarDate = '';
+      renderCalendar();
+    });
     function makePostId() {
       return typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `post-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
@@ -2145,7 +2526,9 @@
       try {
         const before = referencedPictureIds(postStore);
         localStorage.setItem(POSTS_KEY, JSON.stringify(nextStore));
+        const calendarChanged = postStore.entries !== nextStore.entries;
         postStore = nextStore;
+        if (calendarChanged && calendarDialog.open) renderCalendar();
         pictureStorageFailed = false; updateStorageUsage();
         const after = referencedPictureIds(nextStore);
         before.forEach(id => { if (!after.has(id)) deletePictureIfUnused(id); });
@@ -2229,6 +2612,11 @@
       if (!Number.isFinite(date.getTime())) return '時間未記錄';
       return new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(date);
     }
+    async function openSavedPost(record, dialog) {
+      dialog.close();
+      await restorePost(record);
+      autoSaveDraft();
+    }
     function renderSavedPosts() {
       savedPostsList.replaceChildren();
       if (!postStore.entries.length) {
@@ -2262,11 +2650,7 @@
         open.type = 'button';
         open.className = 'action-button';
         open.textContent = '打開';
-        open.addEventListener('click', async () => {
-          postsDialog.close();
-          await restorePost(record);
-          autoSaveDraft();
-        });
+        open.addEventListener('click', () => openSavedPost(record, postsDialog));
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'action-button';
