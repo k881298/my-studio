@@ -8,21 +8,26 @@
     :root {
       /* 所有顏色集中於此；品牌主色請修改 --brand。 */
       --brand: #f0efc1;
-      --paper: #f5f2ec;
-      --surface: #fffdf8;
-      --ink: #24211f;
-      --muted: #777065;
-      --line: #ddd4c5;
-      --accent: #8a7148;
-      --soft: #eee9df;
-      --shadow: #303e3614;
+      --paper: #f4efe5;
+      --surface: #fffdf6;
+      --ink: #282a22;
+      --muted: #655e50;
+      --line: #d9cdb7;
+      --accent: #765534;
+      --soft: #ece5d5;
+      --shadow: #332d211c;
       --clear: transparent;
       --social-ink: #111111;
       --hint: #818181;
       --overlay: #18231c66;
       --white: #ffffff;
-      --header: #f8f4eb;
-      --mount: #e9e3d8;
+      --header: #f7f2e6;
+      --mount: #eae0ce;
+      --studio-green: #303e34;
+      --studio-green-hover: #455647;
+      --studio-light: #fff8e9;
+      --studio-frame: #b69a6e;
+      --studio-serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
       --image-shade: #24211f24;
       --error: #b13d32;
       --review-error-bg: #fce6e2;
@@ -324,6 +329,55 @@
       .panel .action-button { white-space: normal; }
       .platform-tab, .selected-work > * { min-width: 0; overflow-wrap: anywhere; }
       .intro { flex-wrap: wrap; }
+    }
+    /* 深綠外框、細金線與紙色裱褙，取自含框紙雕作品的層次。 */
+    .topbar {
+      padding: 18px clamp(18px, 3vw, 44px);
+      background: var(--studio-green);
+      color: var(--studio-light);
+      border-top: 0;
+      border-bottom: 1px solid var(--studio-frame);
+      box-shadow: inset 0 -5px var(--studio-green), inset 0 -6px var(--studio-frame);
+    }
+    .brand-title, .panel h2, .modal h2, .work-caption strong { font-family: var(--studio-serif); }
+    .brand-title { font-size: clamp(19px, 2.1vw, 29px); line-height: 1.35; letter-spacing: .075em; overflow-wrap: anywhere; }
+    .brand-mark { width: 54px; height: 54px; padding: 5px; border: 1px solid var(--studio-frame); border-radius: 6px; background: var(--studio-light); }
+    .topbar p { margin-top: 5px; color: var(--brand); }
+    .topbar .edition { color: var(--brand); border-color: var(--studio-frame); }
+    .topbar .settings-button { color: var(--studio-light); border-color: var(--studio-frame); background: var(--clear); }
+    .topbar .settings-button:hover, .topbar .settings-button:focus-visible { background: var(--studio-green-hover); }
+    .topbar :focus-visible { outline-color: var(--brand); }
+    .action-button { border-radius: 5px; }
+    .primary-button { background: var(--brand); }
+    .primary-button:hover { background: var(--soft); }
+    .intro { padding-block: 21px; }
+    .intro .quote { font-family: var(--studio-serif); font-size: 14px; }
+    .workspace { border-radius: 9px; }
+    .panel { padding: clamp(22px, 2.1vw, 32px); }
+    .panel h2 { font-size: 21px; }
+    .panel-caption { margin-bottom: 26px; }
+    .field textarea { font-size: 13px; }
+    .selected-work { border-radius: 5px; }
+    .work-mount { box-shadow: inset 0 0 0 4px var(--header), inset 0 0 0 5px var(--line); }
+    .modal { border-radius: 9px; }
+    @media (max-width: 640px) {
+      .topbar { padding: 14px 14px 16px; gap: 12px; }
+      .brand-lockup { gap: 10px; max-width: 100%; }
+      .brand-lockup > div { min-width: 0; }
+      .brand-mark { width: 40px; height: 40px; }
+      .brand-title { letter-spacing: .035em; }
+      .header-actions { width: 100%; min-width: 0; justify-content: flex-start; gap: 6px; }
+      .header-actions .action-button { flex: 0 1 auto; min-width: 0; max-width: 100%; padding: 7px 9px; font-size: 12px; white-space: normal; overflow-wrap: anywhere; }
+      .intro { padding: 14px; }
+      .workspace { margin-inline: 8px; }
+      .panel { padding: 18px 14px; }
+      .panel-caption { margin-bottom: 20px; }
+      .panel-header { flex-wrap: wrap; gap: 2px 8px; }
+      .selected-work { grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); }
+      .work-caption { padding: 12px; }
+      .modal { max-width: calc(100% - 16px); }
+      .modal .action-button, .modal input, .modal select { max-width: 100%; }
+      .modal .action-button { white-space: normal; overflow-wrap: anywhere; }
     }
   </style>
 </head>
